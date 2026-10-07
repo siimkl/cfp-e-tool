@@ -37,7 +37,9 @@ Test email delivery for an invited account; configure your SMTP provider if need
 
 ## 3. Connect Gmail and OpenAI
 
-Sign into [Google Apps Script](https://script.google.com/) as **uti208@gmail.com**. Create a standalone project and copy the three files from [apps-script](apps-script): `Code.gs`, `Core.gs`, and `appsscript.json`.
+Sign into [Google Apps Script](https://script.google.com/) as **callsevents208@gmail.com**. Create a standalone project and copy the three files from [apps-script](apps-script): `Code.gs`, `Core.gs`, and `appsscript.json`.
+
+For an assisted upload, enable **Google Apps Script API** in [Apps Script settings](https://script.google.com/home/usersettings), then run `npx @google/clasp login` locally and choose **callsevents208@gmail.com**. The CLI can then create and upload the project. Gmail execution permission and Script Properties must still be authorised/configured for that Google account.
 
 Add these **Script Properties**, under Apps Script Project Settings:
 

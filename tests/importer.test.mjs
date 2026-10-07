@@ -303,7 +303,7 @@ test('new messages in an already-processed thread are discovered by message ID',
   const sent = {
     ...message('m3'),
     getDate: () => now,
-    getFrom: () => 'uti208@gmail.com',
+    getFrom: () => 'callsevents208@gmail.com',
   };
   db.processed_emails.push({
     message_id: 'm1',
@@ -335,4 +335,44 @@ test('runtime stop can still persist the email error and run summary', () => {
   c.startAutomationRun();
   c.finishAutomationRun('PARTIAL');
   assert.equal(db.automation_runs[0].status, 'PARTIAL');
+});
+
+test('mailbox account check rejects a different Google user', () => {
+  const { context: c } = harness();
+  c.Session = {
+    getEffectiveUser: () => ({ getEmail: () => 'someone-else@gmail.com' }),
+  };
+  assert.throws(
+    () => c.assertMailboxAccount(),
+    /must run as callsevents208@gmail.com/,
+  );
+  c.Session = {
+    getEffectiveUser: () => ({ getEmail: () => 'callsevents208@gmail.com' }),
+  };
+  assert.doesNotThrow(() => c.assertMailboxAccount());
+});
+
+test('sent messages from a configured replacement mailbox and aliases are excluded', () => {
+  const { context: c, state } = harness();
+  state.properties.MAILBOX_EMAIL = 'replacement@gmail.com';
+  const received = { ...message('incoming'), getDate: () => new Date() };
+  const sent = {
+    ...message('sent'),
+    getDate: () => new Date(),
+    getFrom: () => 'replacement@gmail.com',
+  };
+  const alias = {
+    ...message('alias'),
+    getDate: () => new Date(),
+    getFrom: () => 'Editor <alias@example.org>',
+  };
+  c.GmailApp = {
+    getAliases: () => ['alias@example.org'],
+    search: () => [{ getMessages: () => [received, sent, alias] }],
+  };
+  c.RUN = { deadline: Date.now() + 40000, emails_seen: 0 };
+  assert.deepEqual(
+    Array.from(c.getCandidateMessages(), (m) => m.getId()),
+    ['incoming'],
+  );
 });

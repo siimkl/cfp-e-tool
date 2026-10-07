@@ -1,12 +1,22 @@
 # Gmail importer
 
-Run this standalone project as **uti208@gmail.com**. Copy **Code.gs**, **Core.gs** and **appsscript.json**. Full first-time instructions are in [the root setup guide](../README.md#e-configure-gmail-apps-script).
+Run this standalone project as **callsevents208@gmail.com**. Copy **Code.gs**, **Core.gs** and **appsscript.json**. Full first-time instructions are in [the root setup guide](../README.md#e-configure-gmail-apps-script).
 
 ## Configuration
 
 In Apps Script **Project Settings → Script Properties → Add script property**, add `SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `OPENAI_API_KEY`. Save each name/value pair. Do not paste keys into the source code.
 
-Optional properties: `OPENAI_MODEL` (default `gpt-6-luna`), `LOOKBACK_DAYS` (30), `MAX_EMAILS_PER_RUN` (100), `MAX_BODY_CHARS` (120000). Numeric settings must be positive integers; validation rejects invalid configuration before processing.
+Optional properties: `OPENAI_MODEL` (default `gpt-6-luna`), `MAILBOX_EMAIL` (default `callsevents208@gmail.com`), `LOOKBACK_DAYS` (30), `MAX_EMAILS_PER_RUN` (100), `MAX_BODY_CHARS` (120000). Numeric settings must be positive integers; validation rejects invalid configuration before processing. The importer checks the effective Google account matches the configured mailbox before reading mail or creating a trigger. The `userinfo.email` scope is used for that account check.
+
+### Upload using clasp
+
+Instead of copying files manually, use Google's Apps Script CLI (`clasp`). Sign into [Apps Script settings](https://script.google.com/home/usersettings) as **callsevents208@gmail.com** and enable **Google Apps Script API**. In a terminal in the CFP folder, run:
+
+```powershell
+npx @google/clasp login
+```
+
+Choose **callsevents208@gmail.com** in Google's sign-in window. After authentication, a standalone project can be created and these files uploaded. This authorises project management; running the importer still requires the separate Gmail/HTTPS permissions in the Apps Script editor. Private keys belong in that project's Script Properties, not in uploaded source files. `.clasp.json` and local authentication files are excluded from Git.
 
 Run `setupDailyTrigger()` once and grant the requested Google permissions. It creates a daily trigger around 04:00 Europe/Tallinn and replaces previous triggers for the same function. Then run `processInbox()` manually to verify the integration. No deployment as a web app is needed.
 

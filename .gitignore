@@ -7,5 +7,7 @@ test-results/
 playwright-report/
 *.log
 .clasp.json
+.clasprc.json
+.clasprc.*.json
 supabase/.temp/
 supabase/.branches/

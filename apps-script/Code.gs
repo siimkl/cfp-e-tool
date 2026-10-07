@@ -24,6 +24,9 @@ function getConfig() {
     supabaseKey: properties.SUPABASE_SECRET_KEY,
     openaiKey: properties.OPENAI_API_KEY,
     model: properties.OPENAI_MODEL || 'gpt-6-luna',
+    mailboxEmail: (properties.MAILBOX_EMAIL || 'callsevents208@gmail.com')
+      .trim()
+      .toLowerCase(),
     lookbackDays: number('LOOKBACK_DAYS', 30, 365),
     maxEmails: number('MAX_EMAILS_PER_RUN', 100, 500),
     maxBodyChars: number('MAX_BODY_CHARS', 120000, 500000)
@@ -33,6 +36,7 @@ function getConfig() {
 
 function setupDailyTrigger() {
   getConfig();
+  assertMailboxAccount();
   ScriptApp.getProjectTriggers().forEach(function (trigger) {
     if (trigger.getHandlerFunction() === 'processInbox')
       ScriptApp.deleteTrigger(trigger);
@@ -47,6 +51,18 @@ function setupDailyTrigger() {
   console.log(
     'Daily processInbox trigger installed around 04:00 Europe/Tallinn.'
   );
+}
+
+function assertMailboxAccount() {
+  var expected = getConfig().mailboxEmail;
+  var actual = Session.getEffectiveUser().getEmail().trim().toLowerCase();
+  if (actual !== expected) {
+    throw new Error(
+      'This importer must run as ' +
+        expected +
+        '. Sign into that Google account before authorising or running it.'
+    );
+  }
 }
 
 function processInbox() {
@@ -68,6 +84,7 @@ function processInbox() {
   var status = 'SUCCESS';
   try {
     getConfig();
+    assertMailboxAccount();
     startAutomationRun();
     // A saved Gmail thread cursor prevents a busy inbox from starving older pages.
     // Return to page zero after a full scan, so new messages in old threads are seen.
@@ -117,7 +134,7 @@ function getCandidateMessages() {
   var query = 'newer_than:' + config.lookbackDays + 'd -in:sent -in:drafts';
   var cutoff = Date.now() - config.lookbackDays * 86400000;
   var candidates = [];
-  var aliases = ['uti208@gmail.com']
+  var aliases = [config.mailboxEmail]
     .concat(GmailApp.getAliases())
     .map(function (a) {
       return a.toLowerCase();
