@@ -4,13 +4,17 @@ Deployment target: [siimkl/cfp-e-tool](https://github.com/siimkl/cfp-e-tool).
 
 Dashboard URL: **https://siimkl.github.io/cfp-e-tool/**
 
-The first deployment can show the setup screen while the database and email importer are connected. It contains no demonstration data and no private credentials.
+Supabase project: **`mpdwmjvnvoiwfxdvpkif`** (Ireland).
+
+The initial database migration has been applied. Public read access and private-table protection have been verified against the live API. Staff-only authentication settings and the dashboard's two GitHub connection variables are configured. Do not run the initial migration again on this project.
+
+Remaining setup: add authorised staff accounts, then authorise and configure the Gmail/OpenAI importer. The dashboard contains no demonstration data and will be empty until staff add announcements or the importer runs.
 
 ## 1. Connect Supabase
 
-Create a dedicated Supabase project. In its SQL Editor, run [001_initial_schema.sql](supabase/migrations/001_initial_schema.sql) once. Do not run the optional seed on the production project.
+This step is complete for the project above. For a new replacement project, run [001_initial_schema.sql](supabase/migrations/001_initial_schema.sql) once. Do not run the optional seed on the production project.
 
-In [GitHub repository variables](https://github.com/siimkl/cfp-e-tool/settings/variables/actions), add:
+These [GitHub repository variables](https://github.com/siimkl/cfp-e-tool/settings/variables/actions) are already set. Update them only if the project or publishable key changes:
 
 | Name                            | Value                       |
 | ------------------------------- | --------------------------- |
@@ -21,9 +25,9 @@ Then open [the deployment workflow](https://github.com/siimkl/cfp-e-tool/actions
 
 ## 2. Enable staff sign-in
 
-In Supabase Authentication, disable public signups and anonymous sign-ins. Invite authorised staff. All authenticated users in this dedicated project have editor access.
+Public signups and anonymous sign-ins are disabled. In Supabase **Authentication → Users**, add or invite authorised staff. All authenticated users in this dedicated project have editor access. No staff accounts have been created yet.
 
-Set the Site URL and add this exact redirect URL:
+The Site URL and redirect allowlist already include:
 
 ```text
 https://siimkl.github.io/cfp-e-tool/

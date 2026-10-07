@@ -1,0 +1,14 @@
+project_id = "cfp-e-tool"
+
+[db.seed]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "https://siimkl.github.io/cfp-e-tool/"
+additional_redirect_urls = ["https://siimkl.github.io/cfp-e-tool/", "http://127.0.0.1:5173/", "http://localhost:5173/"]
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = false
