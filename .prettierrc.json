@@ -1,0 +1,10 @@
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "overrides": [
+    {
+      "files": "*.gs",
+      "options": { "parser": "babel", "trailingComma": "none" }
+    }
+  ]
+}
