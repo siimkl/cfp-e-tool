@@ -37,15 +37,15 @@ Test email delivery for an invited account; configure your SMTP provider if need
 
 ## 3. Connect Gmail and OpenAI
 
-Sign into [Google Apps Script](https://script.google.com/) as **callsevents208@gmail.com**. Create a standalone project and copy the three files from [apps-script](apps-script): `Code.gs`, `Core.gs`, and `appsscript.json`.
+The standalone **CFP-E Inbox Importer** project has been created under **callsevents208@gmail.com**, and `Code.gs`, `Core.gs`, and `appsscript.json` have been uploaded. Open [the importer in Apps Script](https://script.google.com/home/projects/1tIXNs1tM4IA5EGw46lnuhxQjsy6J2ozK--_Yimu1OHjNdQUzGjhFHrd5/edit) using that Google account. Do not create another project.
 
-For an assisted upload, enable **Google Apps Script API** in [Apps Script settings](https://script.google.com/home/usersettings), then run `npx @google/clasp login` locally and choose **callsevents208@gmail.com**. The CLI can then create and upload the project. Gmail execution permission and Script Properties must still be authorised/configured for that Google account.
+Project upload authorisation is complete. Gmail execution permission and Script Properties must still be authorised/configured in the editor. For future source updates, the local `.clasp.json` links the CLI to this project and `npx @google/clasp push` uploads the importer files.
 
 Add these **Script Properties**, under Apps Script Project Settings:
 
 | Property              | Value                                         |
 | --------------------- | --------------------------------------------- |
-| `SUPABASE_URL`        | Same Supabase project URL                     |
+| `SUPABASE_URL`        | `https://mpdwmjvnvoiwfxdvpkif.supabase.co`    |
 | `SUPABASE_SECRET_KEY` | Private Supabase secret key                   |
 | `OPENAI_API_KEY`      | Private OpenAI API project key                |
 | `OPENAI_MODEL`        | Optional: `gpt-6-luna` is already the default |
