@@ -47,6 +47,8 @@ const validationMessages: Record<string, string> = {
 };
 
 const errorCodes: Record<string, string> = {
+  '23514':
+    'Kontrolli sisestatud andmeid. Teemad peavad olema valitud eestikeelsete kategooriate hulgast.',
   '23505': 'Sama pealkirja, väljaandja ja kuupäevaga kuulutus on juba olemas.',
   '42501': 'Sul puudub selleks toiminguks õigus. Palun logi uuesti sisse.',
   PGRST301: 'Sisselogimine on aegunud. Palun logi uuesti sisse.',

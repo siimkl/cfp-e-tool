@@ -19,7 +19,7 @@ function item(id: string, changes = {}) {
     event_mode: 'UNKNOWN',
     location: null,
     homepage_url: 'https://example.org/cfp',
-    topics: ['digital society'],
+    topics: ['digitaalne ühiskond'],
     source_type: 'EMAIL',
     archived: false,
     created_at: new Date().toISOString(),
@@ -38,7 +38,7 @@ async function api(page: Page, staff = false) {
       event_end: day(17),
       event_mode: 'HYBRID',
       location: 'Tallinn',
-      topics: ['methods'],
+      topics: ['uurimismeetodid'],
     }),
     item('3', { title: 'Expired CFP', deadline: day(-3) }),
     item('4', { title: 'Archived CFP', archived: true }),
@@ -157,7 +157,7 @@ test('public read, search, topics, date filtering and mobile layout', async ({
   await page.getByRole('searchbox').fill('');
   await page
     .getByRole('combobox', { name: /^Teema/ })
-    .selectOption('digital society');
+    .selectOption('digitaalne ühiskond');
   await expect(page.locator('tbody tr')).toHaveCount(1);
   expect(
     requests.some((r) => /item_sources|processed_emails/.test(r.url)),

@@ -24,7 +24,7 @@ const sample = {
   event_mode: 'UNKNOWN',
   location: null,
   homepage_url: 'https://example.org/call',
-  topics: ['society', 'technology'],
+  topics: ['ühiskond', 'tehnoloogia'],
   source_excerpt: 'Digital Society call for papers.',
   confidence: 0.96,
   deadline_extended: false,
@@ -188,6 +188,19 @@ test('irrelevant email becomes NO_ITEMS and is never re-extracted', () => {
     1,
   );
 });
+
+test('topic extraction schema and validation allow only Estonian categories', () => {
+  const { context: c, state, db } = harness();
+  state.extractions.push([{ ...sample, topics: ['academic writing'] }]);
+  assert.equal(c.processMessage(message('foreign-topic')), 'ERROR');
+  assert.equal(db.items.length, 0);
+  const schema = JSON.parse(
+    state.calls.find((call) => call.url.includes('openai')).options.payload,
+  ).text.format.schema;
+  const topics = schema.properties.items.items.properties.topics.items.enum;
+  assert.ok(topics.includes('akadeemiline kirjutamine'));
+  assert.ok(!topics.includes('academic writing'));
+});
 test('multiple announcements and conference CFP/event pair produce independent records', () => {
   const { context: c, state, db } = harness();
   state.extractions.push([
@@ -210,13 +223,17 @@ test('two source emails merge into one item with two private source links', () =
   const { context: c, state, db } = harness();
   state.extractions.push(
     [sample],
-    [{ ...sample, topics: ['policy'], location: 'Tallinn' }],
+    [{ ...sample, topics: ['poliitika'], location: 'Tallinn' }],
   );
   c.processMessage(message('m1'));
   c.processMessage(message('m2'));
   assert.equal(db.items.length, 1);
   assert.equal(db.item_sources.length, 2);
-  assert.deepEqual(db.items[0].topics, ['society', 'technology', 'policy']);
+  assert.deepEqual(db.items[0].topics, [
+    'ühiskond',
+    'tehnoloogia',
+    'poliitika',
+  ]);
   assert.equal(db.items[0].location, 'Tallinn');
   assert.ok(!('sender' in db.items[0]));
   assert.ok(!('body' in db.processed_emails[0]));
@@ -407,14 +424,12 @@ test('newest window caps at 30 messages before skipping completed emails and nev
     [[0, 30]],
   );
   assert.ok(!searches[0][0].includes('newer_than:'));
-  messages
-    .slice(-30)
-    .forEach((m) =>
-      db.processed_emails.push({
-        message_id: m.getId(),
-        processing_status: 'SUCCESS',
-      }),
-    );
+  messages.slice(-30).forEach((m) =>
+    db.processed_emails.push({
+      message_id: m.getId(),
+      processing_status: 'SUCCESS',
+    }),
+  );
   assert.equal(c.getCandidateMessages().length, 0);
   assert.equal(c.RUN.emails_seen, 30);
   assert.equal(

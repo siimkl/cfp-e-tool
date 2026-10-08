@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
+import { ACADEMIC_TOPICS } from '../shared/core.js';
 
 test('migration runs in PostgreSQL and enforces public/staff/service permissions', async () => {
   const db = new PGlite();
@@ -24,6 +25,34 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
     );
     await db.exec(
       readFileSync(new URL('../supabase/seed.sql', import.meta.url), 'utf8'),
+    );
+    await db.exec(
+      "update items set topics = array['doctoral research', 'doctoral researchers', 'academic writing'] where title = 'Example: Research Methods Workshop'",
+    );
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/002_estonian_topics.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    assert.deepEqual(
+      (
+        await db.query(
+          "select topics from items where title = 'Example: Research Methods Workshop'",
+        )
+      ).rows[0].topics,
+      ['akadeemiline kirjutamine', 'doktoriõpe'],
+    );
+    await assert.rejects(
+      db.query("update items set topics = array['academic writing']"),
+      /items_topics_estonian/,
+    );
+    await db.query(
+      "update items set topics = $1 where title = 'Example: Research Methods Workshop'",
+      [ACADEMIC_TOPICS],
     );
     await db.exec(`insert into public.items(item_type,title,archived) values ('CFP','Hidden record',true);
       insert into processed_emails(message_id,received_at,processing_status) values ('mail1',now(),'SUCCESS');`);

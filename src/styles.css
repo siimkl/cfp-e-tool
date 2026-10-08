@@ -706,6 +706,42 @@ blockquote {
   font-size: 12px;
   line-height: 1.6;
 }
+.topic-picker {
+  border: 1px solid #d6ded3;
+  border-radius: 5px;
+  padding: 12px;
+  min-width: 0;
+}
+.topic-picker legend {
+  font-size: 12px;
+  font-weight: 550;
+  padding: 0 5px;
+}
+.topic-picker p {
+  margin: 0 0 10px;
+}
+.topic-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.topic-options label {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  overflow-wrap: anywhere;
+}
+.topic-options input {
+  width: auto;
+  margin-top: 3px;
+}
+@media (max-width: 480px) {
+  .topic-options {
+    grid-template-columns: 1fr;
+  }
+}
 @media (max-width: 980px) {
   .table-hint {
     display: block;

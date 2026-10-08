@@ -56,3 +56,7 @@ If the run encounters a project/configuration error before it can write to Supab
 `Core.gs` is generated from `shared/core.js`. Make shared logic changes there, run `npm run sync:apps-script`, and copy the generated file to Google. `npm test` runs importer logic with test-only Apps Script/HTTP substitutes; live authorisation and actual model behaviour require the manual checks in the root README.
 
 New Supabase secret keys are sent in `apikey`, not as bearer JWTs. Legacy service-role JWTs additionally use `Authorization: Bearer`. All HTTP destinations are fixed to the configured Supabase project and the OpenAI Responses endpoint. Extracted announcement URLs are never fetched by this script.
+
+## Estonian topic categories
+
+Topic labels are always stored in Estonian. The importer’s structured-output schema and validation use `ACADEMIC_TOPICS` from `shared/core.js`; the staff editor offers the same categories. Migration `002_estonian_topics.sql` translates legacy labels and enforces the vocabulary in PostgreSQL. Other announcement text stays in its source language. To extend the vocabulary, update the shared list and add a migration replacing `items_topics_estonian` before deploying the updated importer and editor.

@@ -412,7 +412,7 @@ function extractionSchema() {
     },
     location: nullable,
     homepage_url: nullable,
-    topics: { type: 'array', items: { type: 'string' } },
+    topics: { type: 'array', items: { type: 'string', enum: ACADEMIC_TOPICS } },
     source_excerpt: nullable,
     confidence: { type: 'number', minimum: 0, maximum: 1 },
     deadline_extended: { type: 'boolean' }
@@ -445,6 +445,7 @@ function extractionPrompt() {
     'One email may contain many items. A conference with a submission call should produce a CFP plus an EVENT. ' +
     'For CFP use deadline and null event_start/event_end. For EVENT use event dates and null deadline. ' +
     'Preserve the real title, remove obvious CFP: boilerplate, write a factual summary at most 300 characters, and 2–8 academic topic keywords if supported. ' +
+    'Topics MUST be Estonian labels chosen only from the topics enum, regardless of the language of the email. Choose only relevant categories; use an empty array if none fits. Keep all other content in its original language. ' +
     'Dates must be YYYY-MM-DD; missing or ambiguous dates, including missing years, are null. Do not infer a year from the received date. ' +
     'Use only an explicit HTTP(S) URL from CANDIDATE LINKS or BODY; otherwise null. ' +
     'source_excerpt must be a short verbatim passage supporting the announcement, at most 500 characters, without signatures, contact details or forwarded headers. ' +
@@ -574,6 +575,12 @@ function validateExtractedItem(item, email) {
     result.homepage_url = null;
   result.title = item.title.trim();
   result.summary = item.summary ? item.summary.trim().slice(0, 300) : null;
+  if (
+    item.topics.some(function (topic) {
+      return ACADEMIC_TOPICS.indexOf(topic) < 0;
+    })
+  )
+    throw new Error('Topics must use the approved Estonian categories.');
   result.topics = Array.from(
     new Set(
       item.topics

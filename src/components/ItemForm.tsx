@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { ACADEMIC_TOPICS } from '../../shared/core.js';
 import type { Item, ItemInput } from '../types';
 import {
   clearFieldValidation,
@@ -30,7 +31,7 @@ export function ItemForm({
   onCancel: () => void;
 }) {
   const [draft, setDraft] = useState<ItemInput>(item || empty);
-  const [topics, setTopics] = useState(item?.topics.join(', ') || '');
+  const [topics, setTopics] = useState<string[]>(item?.topics || []);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   function field(name: keyof ItemInput, value: string) {
@@ -44,14 +45,7 @@ export function ItemForm({
       const data: ItemInput = {
         ...draft,
         title: draft.title.trim(),
-        topics: [
-          ...new Set(
-            topics
-              .split(',')
-              .map((t) => t.trim().toLowerCase())
-              .filter(Boolean),
-          ),
-        ],
+        topics: [...new Set(topics)],
       };
       // Whitelist form fields: do not send metadata from an existing Item object.
       const clean = Object.fromEntries(
@@ -184,14 +178,30 @@ export function ItemForm({
           onChange={(e) => field('homepage_url', e.target.value)}
         />
       </label>
-      <label>
-        Teemad
-        <input
-          placeholder="Eralda teemad komadega"
-          value={topics}
-          onChange={(e) => setTopics(e.target.value)}
-        />
-      </label>
+      <fieldset className="topic-picker">
+        <legend>Teemade sildid / kategooriad</legend>
+        <p className="muted">Vali sobivad eestikeelsed kategooriad.</p>
+        <div className="topic-options">
+          {[...ACADEMIC_TOPICS]
+            .sort((a, b) => a.localeCompare(b, 'et'))
+            .map((topic) => (
+              <label key={topic}>
+                <input
+                  type="checkbox"
+                  checked={topics.includes(topic)}
+                  onChange={(event) =>
+                    setTopics((current) =>
+                      event.target.checked
+                        ? [...current, topic]
+                        : current.filter((value) => value !== topic),
+                    )
+                  }
+                />
+                {topic}
+              </label>
+            ))}
+        </div>
+      </fieldset>
       {error && (
         <p role="alert" className="error">
           {error}
