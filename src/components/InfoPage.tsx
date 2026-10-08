@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { SourceStatistics } from './SourceStatistics';
+import { WorkflowDiagram } from './WorkflowDiagram';
 
 export type InfoPageKind = 'sources' | 'architecture' | 'statistics';
 const mailbox = 'callsevents208@gmail.com';
@@ -180,6 +181,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               </li>
             </ol>
           </section>
+          <WorkflowDiagram />
           <section>
             <h2>Millised tehnoloogiad mida teevad?</h2>
             <dl className="technology-list">

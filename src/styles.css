@@ -983,3 +983,70 @@ blockquote {
     padding: 8px 10px;
   }
 }
+
+.workflow-figure {
+  margin: 18px 0;
+}
+.workflow-scroll {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #d8e0d6;
+  border-radius: 8px;
+  padding: 16px 8px;
+}
+.workflow-svg {
+  display: block;
+  width: 100%;
+  min-width: 760px;
+  height: auto;
+}
+.flow-node rect,
+.flow-node > path {
+  fill: #f5f8f3;
+  stroke: #96af9c;
+  stroke-width: 1.5;
+}
+.flow-node.decision > path {
+  fill: #fff6df;
+  stroke: #bea66b;
+}
+.flow-node.terminal rect {
+  fill: #234f40;
+  stroke: #234f40;
+}
+.flow-node.store rect {
+  fill: #eaf2fc;
+  stroke: #7a9abb;
+}
+.flow-node.exception rect {
+  fill: #fff0ee;
+  stroke: #c8867e;
+}
+.flow-node text {
+  fill: #253e32;
+  font-size: 15px;
+  font-family: inherit;
+}
+.flow-node text tspan:first-child {
+  font-weight: 650;
+}
+.flow-node.terminal text {
+  fill: white;
+}
+.flow-edge-label {
+  font-size: 13px;
+  fill: #486455;
+  paint-order: stroke;
+  stroke: white;
+  stroke-width: 5px;
+}
+.workflow-figure figcaption {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #617368;
+  margin-top: 12px;
+}
+.workflow-diagram-section h3 {
+  font-size: 16px;
+  margin-top: 0;
+}
