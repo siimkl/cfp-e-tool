@@ -353,9 +353,160 @@ footer {
   margin: auto;
   padding: 24px 36px 35px;
   display: flex;
+  flex-wrap: wrap;
   gap: 20px;
   color: #8b9388;
   font-size: 11px;
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.footer-links a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.info-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 6px 0 24px;
+}
+.back-link {
+  display: inline-block;
+  margin-bottom: 22px;
+  font-size: 13px;
+}
+.info-page h1 {
+  font-size: clamp(25px, 4vw, 34px);
+  line-height: 1.2;
+  margin: 0 0 18px;
+  letter-spacing: -0.6px;
+}
+.info-page h1:focus {
+  outline: none;
+}
+.info-page h2 {
+  font-size: 19px;
+  margin: 0 0 12px;
+}
+.info-page p,
+.info-page li,
+.info-page dd {
+  line-height: 1.75;
+  font-size: 14px;
+}
+.info-page p {
+  margin: 10px 0;
+}
+.info-page .info-lead {
+  font-size: 16px;
+  color: #53685c;
+}
+.info-page section {
+  margin-top: 30px;
+}
+.info-page ol:not(.workflow) {
+  padding-left: 22px;
+}
+.info-page ol:not(.workflow) li {
+  padding-left: 5px;
+  margin: 10px 0;
+}
+.mailbox-panel {
+  margin: 24px 0;
+  padding: 18px 22px;
+  background: #eaf2e7;
+  border: 1px solid #cfddc9;
+  border-radius: 6px;
+}
+.mailbox-panel span {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+.mailbox-panel a {
+  font-weight: 650;
+  font-size: 19px;
+  overflow-wrap: anywhere;
+}
+.info-note {
+  padding: 22px;
+  background: white;
+  border: 1px solid #d8e0d6;
+  border-radius: 6px;
+}
+.workflow {
+  list-style: none;
+  counter-reset: workflow;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.workflow li {
+  position: relative;
+  counter-increment: workflow;
+  padding: 18px 18px 18px 54px;
+  background: white;
+  border: 1px solid #d8e0d6;
+  border-radius: 6px;
+}
+.workflow li::before {
+  content: counter(workflow);
+  position: absolute;
+  left: 15px;
+  top: 18px;
+  background: #234f40;
+  color: white;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  text-align: center;
+  line-height: 26px;
+  font-size: 12px;
+}
+.workflow strong,
+.workflow span {
+  display: block;
+}
+.workflow span {
+  margin-top: 5px;
+  color: #53685c;
+  font-size: 13px;
+}
+.technology-list {
+  margin: 0;
+}
+.technology-list > div {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid #d8e0d6;
+}
+.technology-list dt {
+  font-weight: 600;
+  font-size: 14px;
+}
+.technology-list dd {
+  margin: 0;
+  color: #53685c;
+}
+@media (max-width: 600px) {
+  .workflow {
+    grid-template-columns: 1fr;
+  }
+  .technology-list > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+  .mailbox-panel {
+    padding: 15px;
+  }
+  .mailbox-panel a {
+    font-size: 16px;
+  }
 }
 footer span:first-child {
   font-weight: 650;

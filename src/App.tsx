@@ -18,6 +18,7 @@ import type { Item, ItemInput, Source } from './types';
 import { ItemRow } from './components/ItemRow';
 import { ItemForm } from './components/ItemForm';
 import { Modal } from './components/Modal';
+import { InfoPage, type InfoPageKind } from './components/InfoPage';
 import {
   clearFieldValidation,
   errorText,
@@ -40,6 +41,21 @@ type Dialog =
   | { kind: 'delete'; item: Item }
   | null;
 export default function App() {
+  const getInfoPage = (): InfoPageKind | null =>
+    window.location.hash === '#/allikad'
+      ? 'sources'
+      : window.location.hash === '#/arhitektuur'
+        ? 'architecture'
+        : null;
+  const [infoPage, setInfoPage] = useState(getInfoPage);
+  useEffect(() => {
+    const navigate = () => {
+      setInfoPage(getInfoPage());
+      setDialog(null);
+    };
+    window.addEventListener('hashchange', navigate);
+    return () => window.removeEventListener('hashchange', navigate);
+  }, []);
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(!supabase);
   const [items, setItems] = useState<Item[]>([]);
@@ -332,218 +348,240 @@ export default function App() {
         </div>
       </header>
       <main>
-        <section className="metrics" aria-label="Kuulutuste statistika">
-          {[
-            [
-              'Avatud CFP-d',
-              current.filter((i) => i.item_type === 'CFP').length,
-            ],
-            [
-              'Tulevased üritused',
-              current.filter((i) => i.item_type === 'EVENT').length,
-            ],
-            ['Uued sel nädalal', current.filter((i) => isNew(i)).length],
-          ].map(([label, count]) => (
-            <div className="metric" key={label}>
-              <span>{label}</span>
-              <strong>
-                {configurationReady && authReady && !loading ? count : '—'}
-              </strong>
-            </div>
-          ))}
-        </section>
-        <section className="directory" aria-label="Kuulutused">
-          <div className="directory-heading">
-            <h1>Kuulutused</h1>
-            {admin && (
-              <button
-                className="primary"
-                onClick={() => setDialog({ kind: 'edit' })}
-              >
-                + Lisa kuulutus
-              </button>
-            )}
-            <span className="muted">Kuupäevad Tallinna aja järgi</span>
-          </div>
-          <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
-            {(
-              [
-                'All',
-                'CFPs',
-                'Events',
-                'New',
-                'Past',
-                ...(admin ? ['Archived'] : []),
-              ] as Tab[]
-            ).map((value) => (
-              <button
-                key={value}
-                aria-pressed={tab === value}
-                onClick={() => setTab(value)}
-              >
-                {tabLabels[value]}
-              </button>
-            ))}
-          </div>
-          <div className="search-row">
-            <label className="search-field">
-              <span className="sr-only">Otsi kuulutusi</span>
-              <span aria-hidden="true">⌕</span>
-              <input
-                type="search"
-                placeholder="Otsi pealkirja, teema või ajakirja järgi…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </label>
-            <label>
-              <span className="sr-only">Teema</span>
-              <select value={topic} onChange={(e) => setTopic(e.target.value)}>
-                <option value="">Kõik teemad</option>
-                {topics.map((t) => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span className="sr-only">Järjestus</span>
-              <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="date">Lähim kuupäev</option>
-                <option value="newest">Viimati lisatud</option>
-              </select>
-            </label>
-          </div>
-          {notice && (
-            <div className="notice" role="status">
-              {notice}
-              <button aria-label="Sulge teavitus" onClick={() => setNotice('')}>
-                ×
-              </button>
-            </div>
-          )}
-          {error && (
-            <div className="error" role="alert">
-              {error} <button onClick={() => void load()}>Proovi uuesti</button>
-            </div>
-          )}
-          {!configurationReady ? (
-            <div className="empty-state">
-              <span className="empty-symbol" aria-hidden="true">
-                ↗
-              </span>
-              <h3>Ühenda kuulutuste andmebaas</h3>
-              <p>
-                Lisa keskkonnaseadetesse Supabase’i projekti aadress ja avalik
-                API-võti ning loo rakenduse uus versioon.
-              </p>
-              <p className="muted">
-                Failis README.md on juhised andmebaasi, haldurite ligipääsu ja
-                Gmailist importimise seadistamiseks.
-              </p>
-            </div>
-          ) : loading || !authReady ? (
-            <p className="loading" role="status">
-              Kuulutuste laadimine…
-            </p>
-          ) : (
-            <>
-              <div className="results-line">
-                <span>
-                  {visible.length}{' '}
-                  {visible.length === 1 ? 'kuulutus' : 'kuulutust'}
-                  {tab === 'Past' ? ' möödunud kuupäevadega' : ''}
-                </span>
-                <button
-                  className="text-button"
-                  onClick={() => {
-                    setQuery('');
-                    setTopic('');
-                    setTab('All');
-                    setSort('date');
-                  }}
-                >
-                  Lähtesta filtrid
-                </button>
+        {infoPage ? (
+          <InfoPage kind={infoPage} />
+        ) : (
+          <>
+            <section className="metrics" aria-label="Kuulutuste statistika">
+              {[
+                [
+                  'Avatud CFP-d',
+                  current.filter((i) => i.item_type === 'CFP').length,
+                ],
+                [
+                  'Tulevased üritused',
+                  current.filter((i) => i.item_type === 'EVENT').length,
+                ],
+                ['Uued sel nädalal', current.filter((i) => isNew(i)).length],
+              ].map(([label, count]) => (
+                <div className="metric" key={label}>
+                  <span>{label}</span>
+                  <strong>
+                    {configurationReady && authReady && !loading ? count : '—'}
+                  </strong>
+                </div>
+              ))}
+            </section>
+            <section className="directory" aria-label="Kuulutused">
+              <div className="directory-heading">
+                <h1>Kuulutused</h1>
+                {admin && (
+                  <button
+                    className="primary"
+                    onClick={() => setDialog({ kind: 'edit' })}
+                  >
+                    + Lisa kuulutus
+                  </button>
+                )}
+                <span className="muted">Kuupäevad Tallinna aja järgi</span>
               </div>
-              {visible.length ? (
-                <>
-                  <div
-                    className="date-legend"
-                    aria-label="Kuupäevade värvide selgitus"
+              <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
+                {(
+                  [
+                    'All',
+                    'CFPs',
+                    'Events',
+                    'New',
+                    'Past',
+                    ...(admin ? ['Archived'] : []),
+                  ] as Tab[]
+                ).map((value) => (
+                  <button
+                    key={value}
+                    aria-pressed={tab === value}
+                    onClick={() => setTab(value)}
                   >
-                    <span className="urgent">0–7 päeva</span>
-                    <span className="soon">8–30 päeva</span>
-                    <span className="later">Üle 30 päeva</span>
-                    <span className="active">Käimas</span>
-                    <span className="past">Möödunud</span>
-                  </div>
-                  <p className="table-hint">
-                    Kõigi veergude nägemiseks keri tabelit külgsuunas →
-                  </p>
-                  <div
-                    className="table-scroll"
-                    role="region"
-                    aria-label="Kuulutuste tabel"
-                    tabIndex={0}
+                    {tabLabels[value]}
+                  </button>
+                ))}
+              </div>
+              <div className="search-row">
+                <label className="search-field">
+                  <span className="sr-only">Otsi kuulutusi</span>
+                  <span aria-hidden="true">⌕</span>
+                  <input
+                    type="search"
+                    placeholder="Otsi pealkirja, teema või ajakirja järgi…"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                  />
+                </label>
+                <label>
+                  <span className="sr-only">Teema</span>
+                  <select
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
                   >
-                    <table className="announcements-table">
-                      <caption className="sr-only">
-                        Kuulutused koos kuupäevade, järelejäänud aja,
-                        toimumiskoha ja teemadega
-                      </caption>
-                      <thead>
-                        <tr>
-                          <th scope="col">Liik</th>
-                          <th scope="col">Kuulutus / korraldaja</th>
-                          <th scope="col">Kuupäev / järelejäänud aeg</th>
-                          <th scope="col">Toimumiskoht</th>
-                          <th scope="col">Teemad</th>
-                          {admin && <th scope="col">Haldus</th>}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {visible.map((item) => (
-                          <ItemRow
-                            key={item.id}
-                            item={item}
-                            today={today}
-                            admin={admin}
-                            onEdit={() => setDialog({ kind: 'edit', item })}
-                            onArchive={() => {
-                              if (!busy) void mutate(item, 'archive');
-                            }}
-                            onDelete={() => setDialog({ kind: 'delete', item })}
-                            onSources={() =>
-                              setDialog({ kind: 'sources', item })
-                            }
-                          />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              ) : (
-                !error && (
-                  <div className="empty-state">
-                    <span className="empty-symbol" aria-hidden="true">
-                      ≡
-                    </span>
-                    <h3>Kuulutusi ei leitud</h3>
-                    <p>
-                      {query || topic
-                        ? 'Proovi teist otsingut või lähtesta filtrid.'
-                        : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
-                    </p>
-                  </div>
-                )
+                    <option value="">Kõik teemad</option>
+                    {topics.map((t) => (
+                      <option key={t}>{t}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span className="sr-only">Järjestus</span>
+                  <select
+                    value={sort}
+                    onChange={(e) => setSort(e.target.value)}
+                  >
+                    <option value="date">Lähim kuupäev</option>
+                    <option value="newest">Viimati lisatud</option>
+                  </select>
+                </label>
+              </div>
+              {notice && (
+                <div className="notice" role="status">
+                  {notice}
+                  <button
+                    aria-label="Sulge teavitus"
+                    onClick={() => setNotice('')}
+                  >
+                    ×
+                  </button>
+                </div>
               )}
-            </>
-          )}
-        </section>
+              {error && (
+                <div className="error" role="alert">
+                  {error}{' '}
+                  <button onClick={() => void load()}>Proovi uuesti</button>
+                </div>
+              )}
+              {!configurationReady ? (
+                <div className="empty-state">
+                  <span className="empty-symbol" aria-hidden="true">
+                    ↗
+                  </span>
+                  <h3>Ühenda kuulutuste andmebaas</h3>
+                  <p>
+                    Lisa keskkonnaseadetesse Supabase’i projekti aadress ja
+                    avalik API-võti ning loo rakenduse uus versioon.
+                  </p>
+                  <p className="muted">
+                    Failis README.md on juhised andmebaasi, haldurite ligipääsu
+                    ja Gmailist importimise seadistamiseks.
+                  </p>
+                </div>
+              ) : loading || !authReady ? (
+                <p className="loading" role="status">
+                  Kuulutuste laadimine…
+                </p>
+              ) : (
+                <>
+                  <div className="results-line">
+                    <span>
+                      {visible.length}{' '}
+                      {visible.length === 1 ? 'kuulutus' : 'kuulutust'}
+                      {tab === 'Past' ? ' möödunud kuupäevadega' : ''}
+                    </span>
+                    <button
+                      className="text-button"
+                      onClick={() => {
+                        setQuery('');
+                        setTopic('');
+                        setTab('All');
+                        setSort('date');
+                      }}
+                    >
+                      Lähtesta filtrid
+                    </button>
+                  </div>
+                  {visible.length ? (
+                    <>
+                      <div
+                        className="date-legend"
+                        aria-label="Kuupäevade värvide selgitus"
+                      >
+                        <span className="urgent">0–7 päeva</span>
+                        <span className="soon">8–30 päeva</span>
+                        <span className="later">Üle 30 päeva</span>
+                        <span className="active">Käimas</span>
+                        <span className="past">Möödunud</span>
+                      </div>
+                      <p className="table-hint">
+                        Kõigi veergude nägemiseks keri tabelit külgsuunas →
+                      </p>
+                      <div
+                        className="table-scroll"
+                        role="region"
+                        aria-label="Kuulutuste tabel"
+                        tabIndex={0}
+                      >
+                        <table className="announcements-table">
+                          <caption className="sr-only">
+                            Kuulutused koos kuupäevade, järelejäänud aja,
+                            toimumiskoha ja teemadega
+                          </caption>
+                          <thead>
+                            <tr>
+                              <th scope="col">Liik</th>
+                              <th scope="col">Kuulutus / korraldaja</th>
+                              <th scope="col">Kuupäev / järelejäänud aeg</th>
+                              <th scope="col">Toimumiskoht</th>
+                              <th scope="col">Teemad</th>
+                              {admin && <th scope="col">Haldus</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {visible.map((item) => (
+                              <ItemRow
+                                key={item.id}
+                                item={item}
+                                today={today}
+                                admin={admin}
+                                onEdit={() => setDialog({ kind: 'edit', item })}
+                                onArchive={() => {
+                                  if (!busy) void mutate(item, 'archive');
+                                }}
+                                onDelete={() =>
+                                  setDialog({ kind: 'delete', item })
+                                }
+                                onSources={() =>
+                                  setDialog({ kind: 'sources', item })
+                                }
+                              />
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </>
+                  ) : (
+                    !error && (
+                      <div className="empty-state">
+                        <span className="empty-symbol" aria-hidden="true">
+                          ≡
+                        </span>
+                        <h3>Kuulutusi ei leitud</h3>
+                        <p>
+                          {query || topic
+                            ? 'Proovi teist otsingut või lähtesta filtrid.'
+                            : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </>
+              )}
+            </section>
+          </>
+        )}
       </main>
       <footer>
         <span>CFP &amp; Events Tracker</span>
         <span>Teadustöö võimalused ühes kohas.</span>
+        <nav className="footer-links" aria-label="Rakenduse juhendid">
+          <a href="#/allikad">Lisa uus allikas, mida jälgida</a>
+          <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
+        </nav>
         <span>Kontrolli üksikasju alati korraldaja juures.</span>
       </footer>
       {dialog?.kind === 'login' && (
