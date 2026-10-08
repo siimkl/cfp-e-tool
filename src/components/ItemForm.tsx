@@ -1,5 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import type { Item, ItemInput } from '../types';
+import {
+  clearFieldValidation,
+  errorText,
+  translateFieldValidation,
+} from '../lib/messages';
 import { normaliseUrl, validateItem } from '../lib/dedupe';
 const empty: ItemInput = {
   item_type: 'CFP',
@@ -56,15 +61,20 @@ export function ItemForm({
       clean.homepage_url = normaliseUrl(clean.homepage_url);
       await onSave(clean);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unable to save this item.');
+      setError(errorText(e, 'Kuulutuse salvestamine ebaõnnestus.'));
     } finally {
       setBusy(false);
     }
   }
   return (
-    <form onSubmit={submit} className="item-form">
+    <form
+      onSubmit={submit}
+      className="item-form"
+      onInvalidCapture={translateFieldValidation}
+      onInputCapture={clearFieldValidation}
+    >
       <label>
-        Type
+        Liik
         <select
           value={draft.item_type}
           onChange={(e) =>
@@ -77,12 +87,12 @@ export function ItemForm({
             }))
           }
         >
-          <option value="CFP">CFP</option>
-          <option value="EVENT">Event</option>
+          <option value="CFP">Call for Papers (CFP)</option>
+          <option value="EVENT">Üritus</option>
         </select>
       </label>
       <label>
-        Title <span aria-hidden="true">*</span>
+        Pealkiri <span aria-hidden="true">*</span>
         <input
           required
           maxLength={500}
@@ -92,14 +102,14 @@ export function ItemForm({
       </label>
       <div className="form-pair">
         <label>
-          Journal
+          Ajakiri
           <input
             value={draft.journal || ''}
             onChange={(e) => field('journal', e.target.value)}
           />
         </label>
         <label>
-          Organiser
+          Korraldaja
           <input
             value={draft.organiser || ''}
             onChange={(e) => field('organiser', e.target.value)}
@@ -107,7 +117,7 @@ export function ItemForm({
         </label>
       </div>
       <label>
-        Summary
+        Kokkuvõte
         <textarea
           rows={3}
           maxLength={2000}
@@ -117,7 +127,7 @@ export function ItemForm({
       </label>
       {draft.item_type === 'CFP' ? (
         <label>
-          Deadline
+          Tähtaeg
           <input
             type="date"
             value={draft.deadline || ''}
@@ -127,7 +137,7 @@ export function ItemForm({
       ) : (
         <div className="form-pair">
           <label>
-            Event start
+            Ürituse algus
             <input
               type="date"
               value={draft.event_start || ''}
@@ -135,7 +145,7 @@ export function ItemForm({
             />
           </label>
           <label>
-            Event end
+            Ürituse lõpp
             <input
               type="date"
               value={draft.event_end || ''}
@@ -146,19 +156,19 @@ export function ItemForm({
       )}
       <div className="form-pair">
         <label>
-          Event mode
+          Osalemisviis
           <select
             value={draft.event_mode}
             onChange={(e) => field('event_mode', e.target.value)}
           >
-            <option value="UNKNOWN">Unknown</option>
-            <option value="IN_PERSON">In person</option>
-            <option value="ONLINE">Online</option>
-            <option value="HYBRID">Hybrid</option>
+            <option value="UNKNOWN">Teadmata</option>
+            <option value="IN_PERSON">Kohapeal</option>
+            <option value="ONLINE">Veebis</option>
+            <option value="HYBRID">Hübriid</option>
           </select>
         </label>
         <label>
-          Location
+          Asukoht
           <input
             value={draft.location || ''}
             onChange={(e) => field('location', e.target.value)}
@@ -166,7 +176,7 @@ export function ItemForm({
         </label>
       </div>
       <label>
-        Homepage / announcement URL
+        Veebilehe või kuulutuse aadress
         <input
           type="url"
           placeholder="https://"
@@ -175,9 +185,9 @@ export function ItemForm({
         />
       </label>
       <label>
-        Topics
+        Teemad
         <input
-          placeholder="Separate topics with commas"
+          placeholder="Eralda teemad komadega"
           value={topics}
           onChange={(e) => setTopics(e.target.value)}
         />
@@ -189,10 +199,10 @@ export function ItemForm({
       )}
       <div className="form-actions">
         <button type="button" onClick={onCancel} disabled={busy}>
-          Cancel
+          Loobu
         </button>
         <button className="primary" disabled={busy}>
-          {busy ? 'Saving…' : 'Save item'}
+          {busy ? 'Salvestamine…' : 'Salvesta kuulutus'}
         </button>
       </div>
     </form>

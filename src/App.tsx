@@ -15,11 +15,24 @@ import {
 import { isNew, isPast, primaryDate, todayInTallinn } from './lib/dates';
 import { makeDedupeKey } from './lib/dedupe';
 import type { Item, ItemInput, Source } from './types';
-import { ItemCard } from './components/ItemCard';
+import { ItemRow } from './components/ItemRow';
 import { ItemForm } from './components/ItemForm';
 import { Modal } from './components/Modal';
+import {
+  clearFieldValidation,
+  errorText,
+  translateFieldValidation,
+} from './lib/messages';
 
 type Tab = 'All' | 'CFPs' | 'Events' | 'New' | 'Past' | 'Archived';
+const tabLabels: Record<Tab, string> = {
+  All: 'Kõik',
+  CFPs: 'Call for Papers (CFP)',
+  Events: 'Üritused',
+  New: 'Uued',
+  Past: 'Möödunud',
+  Archived: 'Arhiveeritud',
+};
 type Dialog =
   | { kind: 'login' }
   | { kind: 'edit'; item?: Item }
@@ -58,7 +71,13 @@ export default function App() {
       if (mounted) {
         setSession(data.session);
         setAuthReady(true);
-        if (error) setError(error.message);
+        if (error)
+          setError(
+            errorText(
+              error,
+              'Sisselogimise kontrollimine ebaõnnestus. Palun logi uuesti sisse.',
+            ),
+          );
       }
     });
     const { data } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -98,10 +117,7 @@ export default function App() {
     } catch (e) {
       if (version === request.current)
         setError(
-          e instanceof Error
-            ? e.message
-            : (e as { message?: string }).message ||
-                'Could not load announcements.',
+          errorText(e, 'Kuulutuste laadimine ebaõnnestus. Proovi uuesti.'),
         );
     } finally {
       if (version === request.current) setLoading(false);
@@ -124,7 +140,8 @@ export default function App() {
       .eq('item_id', dialog.item.id)
       .then(({ data, error }) => {
         if (cancelled) return;
-        if (error) setSourceError(error.message);
+        if (error)
+          setSourceError(errorText(error, 'Allikate laadimine ebaõnnestus.'));
         else setSources(data as unknown as Source[]);
         setSourcesLoading(false);
       });
@@ -185,7 +202,7 @@ export default function App() {
     [items, tab, admin, topic, query, sort, today],
   );
   async function save(data: ItemInput) {
-    if (!supabase || !session) throw new Error('Please log in again.');
+    if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
     const dedupe_key = await makeDedupeKey(data);
     const result =
       dialog?.kind === 'edit' && dialog.item
@@ -208,11 +225,11 @@ export default function App() {
     if (result.error)
       throw new Error(
         result.error.code === '23505'
-          ? 'An item with this title, publisher and date already exists.'
-          : result.error.message,
+          ? 'Sama pealkirja, väljaandja ja kuupäevaga kuulutus on juba olemas.'
+          : errorText(result.error, 'Kuulutuse salvestamine ebaõnnestus.'),
       );
     setDialog(null);
-    setNotice('Item saved.');
+    setNotice('Kuulutus salvestatud.');
     await load();
   }
   async function mutate(item: Item, action: 'archive' | 'delete') {
@@ -235,16 +252,16 @@ export default function App() {
             .single();
     setBusy(false);
     if (error) {
-      setError(error.message);
+      setError(errorText(error, 'Toiming ebaõnnestus. Proovi uuesti.'));
       return;
     }
     setDialog(null);
     setNotice(
       action === 'delete'
-        ? 'Item deleted.'
+        ? 'Kuulutus kustutatud.'
         : item.archived
-          ? 'Item restored.'
-          : 'Item archived.',
+          ? 'Kuulutus taastatud.'
+          : 'Kuulutus arhiveeritud.',
     );
     await load();
   }
@@ -263,18 +280,22 @@ export default function App() {
     setBusy(false);
     setLoginMessage(
       error
-        ? error.message
-        : 'Check your email for a sign-in link. Only invited staff accounts can sign in.',
+        ? errorText(
+            error,
+            'Sisselogimislingi saatmine ebaõnnestus. Kontrolli e-posti aadressi ja proovi uuesti.',
+          )
+        : 'Vaata oma postkastist sisselogimislinki. Sisse saavad logida ainult kutse saanud haldurid.',
     );
   }
   async function logout() {
     const { error } = await supabase!.auth.signOut();
-    if (error) setError(error.message);
+    if (error)
+      setError(errorText(error, 'Toiming ebaõnnestus. Proovi uuesti.'));
     else {
       setSession(null);
       setDialog(null);
       setSources([]);
-      setNotice('You have signed out.');
+      setNotice('Oled välja logitud.');
     }
   }
   return (
@@ -286,14 +307,15 @@ export default function App() {
               CF
             </span>
             <span>
-              CFP/E Tool<small>Calls for Papers & Academic Events</small>
+              CFP &amp; Events Tracker
+              <small>Call for Papers ja teadusüritused</small>
             </span>
           </a>
           <div className="header-actions">
             {admin ? (
               <>
-                <span className="staff-label">Staff workspace</span>
-                <button onClick={() => void logout()}>Logout</button>
+                <span className="staff-label">Haldusvaade</span>
+                <button onClick={() => void logout()}>Logi välja</button>
               </>
             ) : (
               <button
@@ -303,64 +325,47 @@ export default function App() {
                   setDialog({ kind: 'login' });
                 }}
               >
-                Admin login <span aria-hidden="true">↗</span>
+                Halduri sisselogimine <span aria-hidden="true">↗</span>
               </button>
             )}
           </div>
         </div>
       </header>
       <main>
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">ACADEMIC OPPORTUNITIES</p>
-            <h1>Find your next contribution.</h1>
-            <p className="intro">
-              Calls for papers, conferences and conversations across the
-              research community.
-            </p>
-          </div>
-          {admin && (
-            <button
-              className="primary"
-              onClick={() => setDialog({ kind: 'edit' })}
-            >
-              + Add item
-            </button>
-          )}
-        </div>
-        <section className="metrics" aria-label="Announcement statistics">
+        <section className="metrics" aria-label="Kuulutuste statistika">
           {[
             [
-              'Active CFPs',
+              'Avatud CFP-d',
               current.filter((i) => i.item_type === 'CFP').length,
-              'Open calls for research',
             ],
             [
-              'Upcoming Events',
+              'Tulevased üritused',
               current.filter((i) => i.item_type === 'EVENT').length,
-              'Meet the research community',
             ],
-            [
-              'New this week',
-              current.filter((i) => isNew(i)).length,
-              'Added in the last 7 days',
-            ],
-          ].map(([label, count, help]) => (
+            ['Uued sel nädalal', current.filter((i) => isNew(i)).length],
+          ].map(([label, count]) => (
             <div className="metric" key={label}>
               <span>{label}</span>
               <strong>
                 {configurationReady && authReady && !loading ? count : '—'}
               </strong>
-              <small>{help}</small>
             </div>
           ))}
         </section>
-        <section className="directory" aria-label="Announcements">
+        <section className="directory" aria-label="Kuulutused">
           <div className="directory-heading">
-            <h2>Explore announcements</h2>
-            <span className="muted">Dates shown in Europe/Tallinn</span>
+            <h1>Kuulutused</h1>
+            {admin && (
+              <button
+                className="primary"
+                onClick={() => setDialog({ kind: 'edit' })}
+              >
+                + Lisa kuulutus
+              </button>
+            )}
+            <span className="muted">Kuupäevad Tallinna aja järgi</span>
           </div>
-          <div className="filter-tabs" aria-label="Filter announcements">
+          <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
             {(
               [
                 'All',
@@ -376,52 +381,49 @@ export default function App() {
                 aria-pressed={tab === value}
                 onClick={() => setTab(value)}
               >
-                {value}
+                {tabLabels[value]}
               </button>
             ))}
           </div>
           <div className="search-row">
             <label className="search-field">
-              <span className="sr-only">Search announcements</span>
+              <span className="sr-only">Otsi kuulutusi</span>
               <span aria-hidden="true">⌕</span>
               <input
                 type="search"
-                placeholder="Search titles, topics, journals…"
+                placeholder="Otsi pealkirja, teema või ajakirja järgi…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </label>
             <label>
-              <span className="sr-only">Topic</span>
+              <span className="sr-only">Teema</span>
               <select value={topic} onChange={(e) => setTopic(e.target.value)}>
-                <option value="">All topics</option>
+                <option value="">Kõik teemad</option>
                 {topics.map((t) => (
                   <option key={t}>{t}</option>
                 ))}
               </select>
             </label>
             <label>
-              <span className="sr-only">Sort by</span>
+              <span className="sr-only">Järjestus</span>
               <select value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="date">Next relevant date</option>
-                <option value="newest">Recently added</option>
+                <option value="date">Lähim kuupäev</option>
+                <option value="newest">Viimati lisatud</option>
               </select>
             </label>
           </div>
           {notice && (
             <div className="notice" role="status">
               {notice}
-              <button
-                aria-label="Dismiss notification"
-                onClick={() => setNotice('')}
-              >
+              <button aria-label="Sulge teavitus" onClick={() => setNotice('')}>
                 ×
               </button>
             </div>
           )}
           {error && (
             <div className="error" role="alert">
-              {error} <button onClick={() => void load()}>Try again</button>
+              {error} <button onClick={() => void load()}>Proovi uuesti</button>
             </div>
           )}
           {!configurationReady ? (
@@ -429,27 +431,27 @@ export default function App() {
               <span className="empty-symbol" aria-hidden="true">
                 ↗
               </span>
-              <h3>Connect your announcement library</h3>
+              <h3>Ühenda kuulutuste andmebaas</h3>
               <p>
-                Add your Supabase project URL and publishable key to the
-                environment, then rebuild the app.
+                Lisa keskkonnaseadetesse Supabase’i projekti aadress ja avalik
+                API-võti ning loo rakenduse uus versioon.
               </p>
               <p className="muted">
-                The setup guide in README.md walks you through the database,
-                staff access and Gmail import.
+                Failis README.md on juhised andmebaasi, haldurite ligipääsu ja
+                Gmailist importimise seadistamiseks.
               </p>
             </div>
           ) : loading || !authReady ? (
             <p className="loading" role="status">
-              Loading announcements…
+              Kuulutuste laadimine…
             </p>
           ) : (
             <>
               <div className="results-line">
                 <span>
                   {visible.length}{' '}
-                  {visible.length === 1 ? 'announcement' : 'announcements'}
-                  {tab === 'Past' ? ' in the archive of past dates' : ''}
+                  {visible.length === 1 ? 'kuulutus' : 'kuulutust'}
+                  {tab === 'Past' ? ' möödunud kuupäevadega' : ''}
                 </span>
                 <button
                   className="text-button"
@@ -460,36 +462,77 @@ export default function App() {
                     setSort('date');
                   }}
                 >
-                  Reset filters
+                  Lähtesta filtrid
                 </button>
               </div>
               {visible.length ? (
-                <div className="card-grid">
-                  {visible.map((item) => (
-                    <ItemCard
-                      key={item.id}
-                      item={item}
-                      admin={admin}
-                      onEdit={() => setDialog({ kind: 'edit', item })}
-                      onArchive={() => {
-                        if (!busy) void mutate(item, 'archive');
-                      }}
-                      onDelete={() => setDialog({ kind: 'delete', item })}
-                      onSources={() => setDialog({ kind: 'sources', item })}
-                    />
-                  ))}
-                </div>
+                <>
+                  <div
+                    className="date-legend"
+                    aria-label="Kuupäevade värvide selgitus"
+                  >
+                    <span className="urgent">0–7 päeva</span>
+                    <span className="soon">8–30 päeva</span>
+                    <span className="later">Üle 30 päeva</span>
+                    <span className="active">Käimas</span>
+                    <span className="past">Möödunud</span>
+                  </div>
+                  <p className="table-hint">
+                    Kõigi veergude nägemiseks keri tabelit külgsuunas →
+                  </p>
+                  <div
+                    className="table-scroll"
+                    role="region"
+                    aria-label="Kuulutuste tabel"
+                    tabIndex={0}
+                  >
+                    <table className="announcements-table">
+                      <caption className="sr-only">
+                        Kuulutused koos kuupäevade, järelejäänud aja,
+                        toimumiskoha ja teemadega
+                      </caption>
+                      <thead>
+                        <tr>
+                          <th scope="col">Liik</th>
+                          <th scope="col">Kuulutus / korraldaja</th>
+                          <th scope="col">Kuupäev / järelejäänud aeg</th>
+                          <th scope="col">Toimumiskoht</th>
+                          <th scope="col">Teemad</th>
+                          {admin && <th scope="col">Haldus</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visible.map((item) => (
+                          <ItemRow
+                            key={item.id}
+                            item={item}
+                            today={today}
+                            admin={admin}
+                            onEdit={() => setDialog({ kind: 'edit', item })}
+                            onArchive={() => {
+                              if (!busy) void mutate(item, 'archive');
+                            }}
+                            onDelete={() => setDialog({ kind: 'delete', item })}
+                            onSources={() =>
+                              setDialog({ kind: 'sources', item })
+                            }
+                          />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
               ) : (
                 !error && (
                   <div className="empty-state">
                     <span className="empty-symbol" aria-hidden="true">
                       ≡
                     </span>
-                    <h3>No announcements found</h3>
+                    <h3>Kuulutusi ei leitud</h3>
                     <p>
                       {query || topic
-                        ? 'Try a different search or clear your filters.'
-                        : 'Announcements will appear here as they are added by staff or imported from the inbox.'}
+                        ? 'Proovi teist otsingut või lähtesta filtrid.'
+                        : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
                     </p>
                   </div>
                 )
@@ -499,18 +542,24 @@ export default function App() {
         </section>
       </main>
       <footer>
-        <span>CFP/E Tool</span>
-        <span>Academic opportunities, in one place.</span>
-        <span>Always confirm details with the organiser.</span>
+        <span>CFP &amp; Events Tracker</span>
+        <span>Teadustöö võimalused ühes kohas.</span>
+        <span>Kontrolli üksikasju alati korraldaja juures.</span>
       </footer>
       {dialog?.kind === 'login' && (
-        <Modal title="Staff sign in" onClose={() => setDialog(null)}>
+        <Modal title="Halduri sisselogimine" onClose={() => setDialog(null)}>
           <p>
-            Enter your invited staff email to receive a secure sign-in link.
+            Sisesta kutse saanud halduri e-posti aadress. Saadame sellele
+            turvalise sisselogimislingi.
           </p>
-          <form className="item-form" onSubmit={login}>
+          <form
+            className="item-form"
+            onSubmit={login}
+            onInvalidCapture={translateFieldValidation}
+            onInputCapture={clearFieldValidation}
+          >
             <label>
-              Email address
+              E-posti aadress
               <input
                 type="email"
                 required
@@ -521,18 +570,18 @@ export default function App() {
             </label>
             {loginMessage && <p role="status">{loginMessage}</p>}
             <button className="primary" disabled={busy}>
-              {busy ? 'Sending…' : 'Send sign-in link'}
+              {busy ? 'Saatmine…' : 'Saada sisselogimislink'}
             </button>
             <p className="muted">
-              Access is limited to authorised staff. Public registration is
-              closed.
+              Ligipääs on ainult volitatud halduritel. Avalik registreerumine on
+              suletud.
             </p>
           </form>
         </Modal>
       )}
       {admin && dialog?.kind === 'edit' && (
         <Modal
-          title={dialog.item ? 'Edit announcement' : 'Add announcement'}
+          title={dialog.item ? 'Muuda kuulutust' : 'Lisa kuulutus'}
           onClose={() => setDialog(null)}
         >
           <ItemForm
@@ -543,32 +592,34 @@ export default function App() {
         </Modal>
       )}
       {admin && dialog?.kind === 'delete' && (
-        <Modal title="Delete announcement?" onClose={() => setDialog(null)}>
+        <Modal title="Kas kustutada kuulutus?" onClose={() => setDialog(null)}>
           <p>
-            “{dialog.item.title}” and its source links will be permanently
-            deleted. Archive it instead to keep a record.
+            Kuulutus „{dialog.item.title}” ja selle allikaviited kustutatakse
+            jäädavalt. Kuulutuse säilitamiseks kasuta arhiveerimist.
           </p>
           <div className="form-actions">
-            <button onClick={() => setDialog(null)}>Cancel</button>
+            <button onClick={() => setDialog(null)}>Loobu</button>
             <button
               className="danger"
               disabled={busy}
               onClick={() => void mutate(dialog.item, 'delete')}
             >
-              {busy ? 'Deleting…' : 'Delete permanently'}
+              {busy ? 'Kustutamine…' : 'Kustuta jäädavalt'}
             </button>
           </div>
         </Modal>
       )}
       {admin && dialog?.kind === 'sources' && (
-        <Modal title="Announcement sources" onClose={() => setDialog(null)}>
+        <Modal title="Kuulutuse allikad" onClose={() => setDialog(null)}>
           <h3>{dialog.item.title}</h3>
           <p>
-            Source:{' '}
-            {dialog.item.source_type === 'EMAIL' ? 'automated' : 'manual'}
+            Allikas:{' '}
+            {dialog.item.source_type === 'EMAIL'
+              ? 'automaatselt imporditud'
+              : 'käsitsi lisatud'}
           </p>
           {sourcesLoading ? (
-            <p role="status">Loading sources…</p>
+            <p role="status">Allikate laadimine…</p>
           ) : sourceError ? (
             <p className="error" role="alert">
               {sourceError}
@@ -577,31 +628,33 @@ export default function App() {
             sources.map((source) => (
               <div className="source" key={source.id}>
                 <strong>
-                  {source.processed_emails?.subject || 'No subject'}
+                  {source.processed_emails?.subject || 'Teema puudub'}
                 </strong>
                 <p>{source.processed_emails?.sender}</p>
                 <p>
                   {source.processed_emails &&
                     new Date(
                       source.processed_emails.received_at,
-                    ).toLocaleString('en-GB', {
+                    ).toLocaleString('et-EE', {
                       timeZone: 'Europe/Tallinn',
                     })}{' '}
-                  · Europe/Tallinn
+                  · Tallinna aeg
                 </p>
                 {source.source_excerpt && (
                   <blockquote>{source.source_excerpt}</blockquote>
                 )}
                 <p className="muted">
-                  Extraction confidence:{' '}
+                  Andmete tuvastamise kindlus:{' '}
                   {source.extraction_confidence == null
-                    ? 'not supplied'
+                    ? 'määramata'
                     : Math.round(source.extraction_confidence * 100) + '%'}
                 </p>
               </div>
             ))
           ) : (
-            <p className="muted">No email sources are attached to this item.</p>
+            <p className="muted">
+              Sellele kuulutusele pole e-kirjade allikaid lisatud.
+            </p>
           )}
         </Modal>
       )}

@@ -20,7 +20,7 @@ export function Modal({
         <h2 id="modal-title">{title}</h2>
         <button
           className="icon-button"
-          aria-label="Close dialog"
+          aria-label="Sulge aken"
           onClick={onClose}
         >
           ×
