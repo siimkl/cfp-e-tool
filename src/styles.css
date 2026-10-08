@@ -192,7 +192,7 @@ main {
 }
 .search-row {
   display: grid;
-  grid-template-columns: 210px minmax(180px, 1fr) 180px 170px;
+  grid-template-columns: 185px 205px minmax(180px, 1fr) 160px 160px;
   gap: 12px;
   margin-bottom: 15px;
 }
@@ -955,7 +955,7 @@ blockquote {
   }
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1150px) {
   .search-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

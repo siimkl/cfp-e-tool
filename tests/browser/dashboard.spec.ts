@@ -147,11 +147,16 @@ test('public read, search, topics, date filtering and mobile layout', async ({
   await expect(
     page.getByRole('button', { name: 'Muuda', exact: true }),
   ).toHaveCount(0);
-  await page.getByRole('button', { name: 'Möödunud', exact: true }).click();
+  await page
+    .getByRole('combobox', { name: 'Kuulutuste olek' })
+    .selectOption('past');
   await expect(
     page.getByRole('heading', { name: 'Expired CFP' }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Kõik', exact: true }).click();
+  await page
+    .getByRole('combobox', { name: 'Kuulutuste olek' })
+    .selectOption('current');
   await page.getByRole('searchbox').fill('Tallinn');
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await page.getByRole('searchbox').fill('');
@@ -397,7 +402,9 @@ test('table countdown distinguishes today, urgency boundaries, ongoing and past 
       'A call for research on institutions and technology.',
     ),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Möödunud', exact: true }).click();
+  await page
+    .getByRole('combobox', { name: 'Kuulutuste olek' })
+    .selectOption('past');
   await expect(row('Past CFP')).toHaveClass(/date-past/);
   await expect(row('Past CFP')).toContainText('Möödunud · 1 päev tagasi');
 });

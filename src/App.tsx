@@ -32,13 +32,11 @@ import {
   translateFieldValidation,
 } from './lib/messages';
 
-type Tab = 'All' | 'CFPs' | 'Events' | 'New' | 'Past' | 'Archived';
+type Tab = 'All' | 'CFPs' | 'Events' | 'Archived';
 const tabLabels: Record<Tab, string> = {
   All: 'Kõik',
   CFPs: 'Call for Papers (CFP)',
   Events: 'Sündmused',
-  New: 'Uued',
-  Past: 'Möödunud',
   Archived: 'Arhiveeritud',
 };
 type Dialog =
@@ -72,6 +70,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [tab, setTab] = useState<Tab>('All');
+  const [period, setPeriod] = useState('current');
   const [query, setQuery] = useState('');
   const [topic, setTopic] = useState('');
   const [sort, setSort] = useState('date');
@@ -197,13 +196,16 @@ export default function App() {
           } else {
             if (
               item.archived ||
-              (tab === 'Past' ? !isPast(item, today) : isPast(item, today))
+              (period !== 'all' &&
+                (period === 'past'
+                  ? !isPast(item, today)
+                  : isPast(item, today)))
             )
               return false;
           }
           if (tab === 'CFPs' && item.item_type !== 'CFP') return false;
           if (tab === 'Events' && item.item_type !== 'EVENT') return false;
-          if (tab === 'New' && !isNew(item)) return false;
+          if (period === 'new' && !isNew(item)) return false;
           if (topic && !item.topics.includes(topic)) return false;
           if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
             return false;
@@ -227,7 +229,7 @@ export default function App() {
                 primaryDate(b) || '9999',
               ) || a.title.localeCompare(b.title),
         ),
-    [items, tab, admin, topic, query, sort, today, addedPeriod],
+    [items, tab, admin, topic, query, sort, today, addedPeriod, period],
   );
   async function save(data: ItemInput) {
     if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
@@ -380,26 +382,22 @@ export default function App() {
               ))}
             </section>
             <section className="directory" aria-label="Kuulutused">
-              <div className="directory-heading">
-                <h1>Kuulutused</h1>
-                {admin && (
+              {admin && (
+                <div className="directory-heading">
                   <button
                     className="primary"
                     onClick={() => setDialog({ kind: 'edit' })}
                   >
                     + Lisa kuulutus
                   </button>
-                )}
-                <span className="muted">Kuupäevad Tallinna aja järgi</span>
-              </div>
+                </div>
+              )}
               <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
                 {(
                   [
                     'All',
                     'CFPs',
                     'Events',
-                    'New',
-                    'Past',
                     ...(admin ? ['Archived'] : []),
                   ] as Tab[]
                 ).map((value) => (
@@ -413,6 +411,18 @@ export default function App() {
                 ))}
               </div>
               <div className="search-row">
+                <label>
+                  <span className="sr-only">Kuulutuste olek</span>
+                  <select
+                    value={period}
+                    onChange={(event) => setPeriod(event.target.value)}
+                  >
+                    <option value="current">Aktiivsed kuulutused</option>
+                    <option value="new">Uued kuulutused</option>
+                    <option value="past">Möödunud kuulutused</option>
+                    <option value="all">Kõik kuupäevad</option>
+                  </select>
+                </label>
                 <label>
                   <span className="sr-only">Lisamise aeg</span>
                   <select
@@ -505,7 +515,7 @@ export default function App() {
                     <span>
                       {visible.length}{' '}
                       {visible.length === 1 ? 'kuulutus' : 'kuulutust'}
-                      {tab === 'Past' ? ' möödunud kuupäevadega' : ''}
+                      {period === 'past' ? ' möödunud kuupäevadega' : ''}
                     </span>
                     <button
                       className="text-button"
@@ -514,6 +524,7 @@ export default function App() {
                         setAddedPeriod('last7');
                         setTopic('');
                         setTab('All');
+                        setPeriod('current');
                         setSort('date');
                       }}
                     >
