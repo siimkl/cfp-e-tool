@@ -333,8 +333,10 @@ export default function App() {
               CF
             </span>
             <span>
-              CFP &amp; Sündmuste jälgija
-              <small>Call for Papers ja teadussündmused</small>
+              ÜTI CFP &amp; Sündmuste jälgija
+              <small>
+                Call for Papers ja teadussündmused otse korraldajatelt
+              </small>
             </span>
           </a>
           <div className="header-actions">
@@ -601,7 +603,7 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span>CFP &amp; Sündmuste jälgija</span>
+        <span>ÜTI CFP &amp; Sündmuste jälgija</span>
         <span>Teadustöö võimalused ühes kohas.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
           <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>

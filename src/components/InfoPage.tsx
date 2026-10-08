@@ -10,11 +10,11 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       ? 'Lisa uus allikas, mida jälgida'
       : 'CFP rakenduse arhitektuur';
   useEffect(() => {
-    document.title = `${title} · CFP & Sündmuste jälgija`;
+    document.title = `${title} · ÜTI CFP & Sündmuste jälgija`;
     heading.current?.focus();
     window.scrollTo(0, 0);
     return () => {
-      document.title = 'CFP & Sündmuste jälgija';
+      document.title = 'ÜTI CFP & Sündmuste jälgija';
     };
   }, [title]);
   return (
@@ -100,8 +100,8 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       ) : (
         <>
           <p className="info-lead">
-            CFP &amp; Sündmuste jälgija koondab e-kirjades avaldatud Call for
-            Papers (CFP) ja teadussündmused otsitavasse tabelisse. Veebileht
+            ÜTI CFP &amp; Sündmuste jälgija koondab e-kirjades avaldatud Call
+            for Papers (CFP) ja teadussündmused otsitavasse tabelisse. Veebileht
             kuvab andmeid; kirjade lugemine ja mudeli töö käivad taustal.
           </p>
           <section>

@@ -136,7 +136,7 @@ test('public read, search, topics, date filtering and mobile layout', async ({
 }) => {
   const requests = await api(page);
   await page.goto('/');
-  await expect(page).toHaveTitle('CFP & Sündmuste jälgija');
+  await expect(page).toHaveTitle('ÜTI CFP & Sündmuste jälgija');
   await expect(page.locator('html')).toHaveAttribute('lang', 'et');
   await expect(
     page.getByRole('heading', { name: 'Research on Digital Society' }),
