@@ -73,7 +73,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [topic, setTopic] = useState('');
   const [sort, setSort] = useState('date');
-  const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('all');
+  const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('last7');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
@@ -513,7 +513,7 @@ export default function App() {
                       className="text-button"
                       onClick={() => {
                         setQuery('');
-                        setAddedPeriod('all');
+                        setAddedPeriod('last7');
                         setTopic('');
                         setTab('All');
                         setSort('date');

@@ -240,7 +240,9 @@ test('added-date filter uses Tallinn dates and Monday calendar weeks', async ({
   await filter.selectOption('month');
   await expect(page.locator('tbody tr')).toHaveCount(5);
   await page.getByRole('button', { name: 'Lähtesta filtrid' }).click();
-  await expect(filter).toHaveValue('all');
+  await expect(filter).toHaveValue('last7');
+  await expect(page.locator('tbody tr')).toHaveCount(4);
+  await filter.selectOption('all');
   await expect(page.locator('tbody tr')).toHaveCount(6);
 });
 
