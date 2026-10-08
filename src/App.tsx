@@ -592,6 +592,10 @@ export default function App() {
                   )}
                 </>
               )}
+              <p className="table-disclaimer">
+                Andmeid töötleb keelemudel, mis võib teha vigu. Kontrolli
+                üksikasju alati korraldaja juures.
+              </p>
             </section>
           </>
         )}
@@ -603,7 +607,6 @@ export default function App() {
           <a href="#/allikad">Lisa uus allikas, mida jälgida</a>
           <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
         </nav>
-        <span>Kontrolli üksikasju alati korraldaja juures.</span>
       </footer>
       {dialog?.kind === 'login' && (
         <Modal title="Halduri sisselogimine" onClose={() => setDialog(null)}>

@@ -699,6 +699,12 @@ blockquote {
 .table-hint {
   display: none;
 }
+.table-disclaimer {
+  margin: 16px 0 0;
+  color: #617368;
+  font-size: 12px;
+  line-height: 1.6;
+}
 @media (max-width: 980px) {
   .table-hint {
     display: block;
