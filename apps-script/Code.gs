@@ -27,29 +27,87 @@ function getConfig() {
     mailboxEmail: (properties.MAILBOX_EMAIL || 'callsevents208@gmail.com')
       .trim()
       .toLowerCase(),
-    lookbackDays: number('LOOKBACK_DAYS', 30, 365),
-    maxEmails: number('MAX_EMAILS_PER_RUN', 100, 500),
+    maxEmails: Math.min(number('MAX_EMAILS_PER_RUN', 30, 500), 30),
     maxBodyChars: number('MAX_BODY_CHARS', 120000, 500000)
   };
   return CONFIG;
 }
 
+// Compatibility: the existing editor function now installs both daily runs.
 function setupDailyTrigger() {
+  setupTwiceDailyTriggers();
+}
+
+function setupTwiceDailyTriggers() {
   getConfig();
   assertMailboxAccount();
-  ScriptApp.getProjectTriggers().forEach(function (trigger) {
-    if (trigger.getHandlerFunction() === 'processInbox')
-      ScriptApp.deleteTrigger(trigger);
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000))
+    throw new Error(
+      'Importer is running. Wait for it to finish, then run setup again.'
+    );
+  try {
+    ensureTwiceDailyTriggers(true);
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function ensureTwiceDailyTriggers(force) {
+  var properties = PropertiesService.getScriptProperties();
+  var triggers = ScriptApp.getProjectTriggers().filter(function (trigger) {
+    return trigger.getHandlerFunction() === 'processInbox';
   });
-  ScriptApp.newTrigger('processInbox')
-    .timeBased()
-    .atHour(4)
-    .nearMinute(0)
-    .everyDays(1)
-    .inTimezone('Europe/Tallinn')
-    .create();
+  var marker = 'v1-Europe/Tallinn-04-16:';
+  var current =
+    marker +
+    triggers
+      .map(function (trigger) {
+        return trigger.getUniqueId();
+      })
+      .sort()
+      .join(',');
+  if (
+    !force &&
+    triggers.length === 2 &&
+    properties.getProperty('IMPORT_SCHEDULE') === current
+  )
+    return;
+  // Create the replacement pair first; keep the old schedule if creation fails.
+  var created = [];
+  try {
+    [4, 16].forEach(function (hour) {
+      created.push(
+        ScriptApp.newTrigger('processInbox')
+          .timeBased()
+          .atHour(hour)
+          .nearMinute(0)
+          .everyDays(1)
+          .inTimezone('Europe/Tallinn')
+          .create()
+      );
+    });
+  } catch (error) {
+    created.forEach(function (trigger) {
+      ScriptApp.deleteTrigger(trigger);
+    });
+    throw error;
+  }
+  triggers.forEach(function (trigger) {
+    ScriptApp.deleteTrigger(trigger);
+  });
+  properties.setProperty(
+    'IMPORT_SCHEDULE',
+    marker +
+      created
+        .map(function (trigger) {
+          return trigger.getUniqueId();
+        })
+        .sort()
+        .join(',')
+  );
   console.log(
-    'Daily processInbox trigger installed around 04:00 Europe/Tallinn.'
+    'Automaatika seadistatud: iga päev umbes 04:00 ja 16:00 (Europe/Tallinn), kuni 30 viimast saabunud kirja.'
   );
 }
 
@@ -85,9 +143,9 @@ function processInbox() {
   try {
     getConfig();
     assertMailboxAccount();
+    ensureTwiceDailyTriggers(false);
     startAutomationRun();
-    // A saved Gmail thread cursor prevents a busy inbox from starving older pages.
-    // Return to page zero after a full scan, so new messages in old threads are seen.
+    // Always inspect the newest bounded window; completed messages are skipped.
     var candidates = getCandidateMessages();
     for (var i = 0; i < candidates.length; i++) {
       if (Date.now() >= RUN.deadline) {
@@ -129,72 +187,56 @@ function processInbox() {
 
 function getCandidateMessages() {
   var config = getConfig();
-  var props = PropertiesService.getScriptProperties();
-  var offset = Number(props.getProperty('SCAN_THREAD_OFFSET') || 0);
-  var query = 'newer_than:' + config.lookbackDays + 'd -in:sent -in:drafts';
-  var cutoff = Date.now() - config.lookbackDays * 86400000;
-  var candidates = [];
   var aliases = [config.mailboxEmail]
     .concat(GmailApp.getAliases())
     .map(function (a) {
       return a.toLowerCase();
     });
-  while (
-    candidates.length < config.maxEmails &&
-    Date.now() < RUN.deadline - 30000
-  ) {
-    var threads = GmailApp.search(query, offset, 50);
-    if (!threads.length) {
-      props.setProperty('SCAN_THREAD_OFFSET', '0');
-      break;
-    }
-    for (var i = 0; i < threads.length; i++) {
-      var messages = threads[i].getMessages().filter(function (message) {
-        // Gmail search returns whole threads, including replies that did not match.
-        var sender = message.getFrom().match(/<([^>]+)>/);
-        var address = (sender ? sender[1] : message.getFrom())
-          .toLowerCase()
-          .trim();
-        return (
-          !message.isDraft() &&
-          message.getDate().getTime() >= cutoff &&
-          aliases.indexOf(address) < 0
-        );
-      });
-      var ledger = getProcessedEmails(
-        messages.map(function (m) {
-          return m.getId();
-        })
-      );
-      for (var j = 0; j < messages.length; j++) {
-        RUN.emails_seen++;
-        var state = ledger[messages[j].getId()];
-        if (
-          !state ||
-          ['SUCCESS', 'NO_ITEMS', 'PERMANENT_ERROR'].indexOf(
-            state.processing_status
-          ) < 0
-        )
-          candidates.push(messages[j]);
-        if (candidates.length >= config.maxEmails) {
-          // Revisit this thread next time; only terminal message IDs are skipped.
-          props.setProperty('SCAN_THREAD_OFFSET', String(offset + i));
-          return candidates;
-        }
-      }
-      if (Date.now() >= RUN.deadline - 30000) {
-        props.setProperty('SCAN_THREAD_OFFSET', String(offset + i));
-        return candidates;
-      }
-    }
-    offset += threads.length;
-    props.setProperty('SCAN_THREAD_OFFSET', String(offset));
-    if (threads.length < 50) {
-      props.setProperty('SCAN_THREAD_OFFSET', '0');
-      break;
-    }
-  }
-  return candidates;
+  var query =
+    '-in:sent -in:drafts ' +
+    aliases
+      .map(function (address) {
+        return '-from:(' + address + ')';
+      })
+      .join(' ');
+  // GmailApp returns threads, not messages. Fetch only the first 30 threads,
+  // sort incoming message metadata, then cap BEFORE checking the ledger.
+  // Never paginate into the old mailbox or fill gaps with older unseen emails.
+  var threads = GmailApp.search(query, 0, config.maxEmails);
+  var messages = [];
+  threads.forEach(function (thread) {
+    thread.getMessages().forEach(function (message) {
+      var sender = message.getFrom().match(/<([^>]+)>/);
+      var address = (sender ? sender[1] : message.getFrom())
+        .toLowerCase()
+        .trim();
+      if (!message.isDraft() && aliases.indexOf(address) < 0)
+        messages.push(message);
+    });
+  });
+  messages.sort(function (a, b) {
+    return (
+      b.getDate().getTime() - a.getDate().getTime() ||
+      a.getId().localeCompare(b.getId())
+    );
+  });
+  messages = messages.slice(0, config.maxEmails);
+  RUN.emails_seen = messages.length;
+  if (!messages.length) return [];
+  var ledger = getProcessedEmails(
+    messages.map(function (message) {
+      return message.getId();
+    })
+  );
+  return messages.filter(function (message) {
+    var state = ledger[message.getId()];
+    return (
+      !state ||
+      ['SUCCESS', 'NO_ITEMS', 'PERMANENT_ERROR'].indexOf(
+        state.processing_status
+      ) < 0
+    );
+  });
 }
 
 function processMessage(message) {

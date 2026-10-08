@@ -52,7 +52,7 @@ Add these **Script Properties**, under Apps Script Project Settings:
 
 Keep both private keys here only. They do not belong in GitHub variables or the frontend.
 
-Run `processInbox()` manually and authorise Google access. Inspect its execution and the Supabase processing tables. Once successful, run `setupDailyTrigger()` to schedule processing around 04:00 Europe/Tallinn.
+Run `processInbox()` manually and authorise Google access. Inspect its execution and the Supabase processing tables. Once successful, run `setupTwiceDailyTriggers()` to schedule processing around 04:00 and 16:00 Europe/Tallinn. Existing scheduled installations migrate on their next run. Each execution checks only the newest 30 received messages; completed messages are skipped and older mailbox pages are not scanned.
 
 ## 4. Verify the complete flow
 

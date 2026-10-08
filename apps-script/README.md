@@ -6,7 +6,7 @@ Run this standalone project as **callsevents208@gmail.com**. Copy **Code.gs**, *
 
 In Apps Script **Project Settings → Script Properties → Add script property**, add `SUPABASE_URL`, `SUPABASE_SECRET_KEY` and `OPENAI_API_KEY`. Save each name/value pair. Do not paste keys into the source code.
 
-Optional properties: `OPENAI_MODEL` (default `gpt-6-luna`), `MAILBOX_EMAIL` (default `callsevents208@gmail.com`), `LOOKBACK_DAYS` (30), `MAX_EMAILS_PER_RUN` (100), `MAX_BODY_CHARS` (120000). Numeric settings must be positive integers; validation rejects invalid configuration before processing. The importer checks the effective Google account matches the configured mailbox before reading mail or creating a trigger. The `userinfo.email` scope is used for that account check.
+Optional properties: `OPENAI_MODEL` (default `gpt-6-luna`), `MAILBOX_EMAIL` (default `callsevents208@gmail.com`), `MAX_EMAILS_PER_RUN` (30; hard maximum 30, including older settings above 30), `MAX_BODY_CHARS` (120000). Numeric settings must be positive integers; validation rejects invalid configuration before processing. The importer checks the effective Google account matches the configured mailbox before reading mail or creating a trigger. The `userinfo.email` scope is used for that account check.
 
 ### Upload using clasp
 
@@ -18,7 +18,7 @@ npx @google/clasp login
 
 Choose **callsevents208@gmail.com** in Google's sign-in window. After authentication, a standalone project can be created and these files uploaded. This authorises project management; running the importer still requires the separate Gmail/HTTPS permissions in the Apps Script editor. Private keys belong in that project's Script Properties, not in uploaded source files. `.clasp.json` and local authentication files are excluded from Git.
 
-Run `setupDailyTrigger()` once and grant the requested Google permissions. It creates a daily trigger around 04:00 Europe/Tallinn and replaces previous triggers for the same function. Then run `processInbox()` manually to verify the integration. No deployment as a web app is needed.
+Run `setupTwiceDailyTriggers()` once and grant the requested Google permissions. It creates two daily triggers around 04:00 and 16:00 Europe/Tallinn (approximately ±15 minutes). It replaces only previous `processInbox` triggers and preserves unrelated triggers. The old `setupDailyTrigger()` function remains an alias for this two-run setup. Existing installations also migrate automatically on their next `processInbox()` execution, without reinstalling the schedule on every run. Then run `processInbox()` manually to verify the integration. No deployment as a web app is needed.
 
 ## Processing and recovery
 
@@ -26,7 +26,7 @@ The importer uses a script lock to prevent concurrent executions of this project
 
 OpenAI network failures, HTTP 429 and HTTP 5xx retry up to three times per extraction, with exponential backoff. These HTTP attempts are separate from the three email-processing attempts. Non-retryable HTTP failures fail promptly. Responses and email bodies are never logged. Errors retain service/status and context without response bodies or credentials.
 
-`SCAN_THREAD_OFFSET` is maintained automatically in Script Properties. It advances through Gmail thread pages and resets to zero at the end of a scan. You can remove this one property to restart scanning at the newest page. Completed message IDs still prevent duplicate extraction. Do not filter out labelled threads: a new incoming message may reuse an existing thread.
+Each run requests only the first 30 matching Gmail threads, sorts incoming message metadata newest first, and checks at most the newest 30 messages against the ledger. Bodies are read only for messages requiring extraction. Completed messages count toward this 30-message window; they are not replaced with older unprocessed mail. There is no pagination or full-mailbox scan. Old `SCAN_THREAD_OFFSET` and `LOOKBACK_DAYS` properties are ignored and may be removed. New replies in an existing thread are still eligible. Sent messages, drafts and messages from the mailbox’s own aliases are excluded.
 
 In **Executions**, inspect failures. In Supabase, query:
 
@@ -47,9 +47,9 @@ set processing_status = 'ERROR', attempts = 0, error_message = null
 where message_id = 'REPLACE_WITH_THE_ONE_MESSAGE_ID';
 ```
 
-Then run `processInbox()`. It must still be inside the lookback window. Partial inserts are safe to retry: unique fingerprints and `(item_id, message_id)` source keys prevent duplicate records. Resetting a successful email intentionally calls OpenAI again, so do this only when reprocessing is wanted.
+Then run `processInbox()`. It must still be inside the newest 30-message window. Partial inserts are safe to retry: unique fingerprints and `(item_id, message_id)` source keys prevent duplicate records. Resetting a successful email intentionally calls OpenAI again, so do this only when reprocessing is wanted.
 
-If the run encounters a project/configuration error before it can write to Supabase, Apps Script logs are the source of truth. A `RUNNING` row older than 15 minutes is marked `ERROR` during the next run, indicating a likely hard timeout. API latency can still exceed the Apps Script hard limit even with the soft time budget. Very busy inboxes must be processed often enough to keep up within the configured lookback window.
+If the run encounters a project/configuration error before it can write to Supabase, Apps Script logs are the source of truth. A `RUNNING` row older than 15 minutes is marked `ERROR` during the next run, indicating a likely hard timeout. API latency can still exceed the Apps Script hard limit even with the soft time budget. If more than 30 incoming messages arrive between runs, messages outside the newest 30 are intentionally not imported. A run stopped by the time budget retries pending messages next time only while they remain in this window.
 
 ## Maintenance
 

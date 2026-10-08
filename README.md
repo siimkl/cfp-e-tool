@@ -76,12 +76,11 @@ Assets use Vite's relative base (`./`), supporting both a GitHub Pages project p
    | `SUPABASE_SECRET_KEY` | Private `sb_secret_…` key, or legacy service-role JWT |
    | `OPENAI_API_KEY`      | Key from your OpenAI API project with billing enabled |
    | `OPENAI_MODEL`        | Optional; defaults to `gpt-6-luna`                    |
-   | `LOOKBACK_DAYS`       | Optional; defaults to `30`                            |
-   | `MAX_EMAILS_PER_RUN`  | Optional; defaults to `100`                           |
+   | `MAX_EMAILS_PER_RUN`  | Optional; defaults to `30`, capped at `30`            |
    | `MAX_BODY_CHARS`      | Optional; defaults to `120000`                        |
 
-7. Save, choose **setupDailyTrigger** in the function dropdown, then click **Run**. Authorise the Google permissions once, under **callsevents208@gmail.com**. Review the project you just created if Google displays its unverified-app prompt.
-8. Open **Triggers** and verify one `processInbox` time-driven trigger exists. It runs approximately at **04:00 Europe/Tallinn**; Google may vary the exact time. Running setup again replaces earlier `processInbox` triggers without removing unrelated triggers.
+7. Save, choose **setupTwiceDailyTriggers** in the function dropdown, then click **Run**. Authorise the Google permissions once, under **callsevents208@gmail.com**. Review the project you just created if Google displays its unverified-app prompt.
+8. Open **Triggers** and verify two `processInbox` time-driven triggers exist. They run approximately at **04:00 and 16:00 Europe/Tallinn**; Google may vary the exact time. Running setup again replaces earlier `processInbox` triggers without removing unrelated triggers.
 
 The requested Gmail scope is broad because `GmailApp` requires `https://mail.google.com/`; the importer only reads messages. The other scopes allow external HTTPS requests and trigger management. Do not share this Apps Script project with anyone who should not have access to its Script Properties.
 

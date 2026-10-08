@@ -376,3 +376,129 @@ test('sent messages from a configured replacement mailbox and aliases are exclud
     ['incoming'],
   );
 });
+
+test('newest window caps at 30 messages before skipping completed emails and never paginates', () => {
+  const { context: c, state, db } = harness();
+  state.properties.MAX_EMAILS_PER_RUN = '100'; // Old configuration is capped too.
+  state.properties.SCAN_THREAD_OFFSET = '500'; // Old cursor must be ignored.
+  const messages = Array.from({ length: 65 }, (_, i) => ({
+    ...message('m' + i),
+    getDate: () => new Date(Date.UTC(2026, 9, 8, 12, i)),
+  }));
+  const searches = [];
+  c.GmailApp = {
+    getAliases: () => [],
+    search: (...args) => {
+      searches.push(args);
+      return [{ getMessages: () => messages }];
+    },
+  };
+  c.RUN = { deadline: Date.now() + 40000, emails_seen: 0 };
+  assert.deepEqual(
+    Array.from(c.getCandidateMessages(), (m) => m.getId()),
+    messages
+      .slice(-30)
+      .reverse()
+      .map((m) => m.getId()),
+  );
+  assert.equal(c.RUN.emails_seen, 30);
+  assert.deepEqual(
+    searches.map((args) => args.slice(1)),
+    [[0, 30]],
+  );
+  assert.ok(!searches[0][0].includes('newer_than:'));
+  messages
+    .slice(-30)
+    .forEach((m) =>
+      db.processed_emails.push({
+        message_id: m.getId(),
+        processing_status: 'SUCCESS',
+      }),
+    );
+  assert.equal(c.getCandidateMessages().length, 0);
+  assert.equal(c.RUN.emails_seen, 30);
+  assert.equal(
+    state.calls.filter((call) => call.url.includes('openai')).length,
+    0,
+  );
+});
+
+test('twice-daily schedule replaces only importer triggers and is idempotent', () => {
+  const { context: c, state } = harness();
+  const trigger = (id, handler, settings = {}) => ({
+    ...settings,
+    getUniqueId: () => id,
+    getHandlerFunction: () => handler,
+  });
+  let triggers = [
+    trigger('old', 'processInbox'),
+    trigger('other', 'otherTask'),
+  ];
+  let created = 0;
+  let failAt = -1;
+  c.ScriptApp = {
+    getProjectTriggers: () => triggers,
+    deleteTrigger: (target) => {
+      triggers = triggers.filter((t) => t !== target);
+    },
+    newTrigger: (handler) => {
+      const settings = {};
+      const builder = {
+        timeBased() {
+          return this;
+        },
+        atHour(hour) {
+          settings.hour = hour;
+          return this;
+        },
+        nearMinute(minute) {
+          settings.minute = minute;
+          return this;
+        },
+        everyDays(days) {
+          settings.days = days;
+          return this;
+        },
+        inTimezone(zone) {
+          settings.zone = zone;
+          return this;
+        },
+        create() {
+          if (++created === failAt) throw new Error('quota');
+          const t = trigger('new' + created, handler, settings);
+          triggers.push(t);
+          return t;
+        },
+      };
+      return builder;
+    },
+  };
+  c.ensureTwiceDailyTriggers(false);
+  assert.deepEqual(
+    triggers.map((t) => t.getUniqueId()),
+    ['other', 'new1', 'new2'],
+  );
+  assert.deepEqual(
+    triggers.slice(1).map((t) => [t.hour, t.minute, t.days, t.zone]),
+    [
+      [4, 0, 1, 'Europe/Tallinn'],
+      [16, 0, 1, 'Europe/Tallinn'],
+    ],
+  );
+  const marker = state.properties.IMPORT_SCHEDULE;
+  c.ensureTwiceDailyTriggers(false);
+  assert.equal(created, 2);
+  assert.equal(state.properties.IMPORT_SCHEDULE, marker);
+  failAt = 4;
+  assert.throws(() => c.ensureTwiceDailyTriggers(true), /quota/);
+  assert.deepEqual(
+    triggers.map((t) => t.getUniqueId()),
+    ['other', 'new1', 'new2'],
+  );
+  triggers.pop(); // A deleted scheduled run is repaired next time.
+  c.ensureTwiceDailyTriggers(false);
+  assert.deepEqual(
+    triggers.slice(1).map((t) => t.hour),
+    [4, 16],
+  );
+});
