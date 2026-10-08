@@ -28,9 +28,9 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       {kind === 'sources' ? (
         <>
           <p className="info-lead">
-            Aita tuua Call for Papers (CFP) ja teadusürituste teated ühte kohta.
-            Selleks saad tellida ühisesse postkasti uudiskirju või saata sinna
-            huvipakkuva kirja edasi.
+            Aita tuua Call for Papers (CFP) ja teadussündmuste teated ühte
+            kohta. Selleks saad tellida ühisesse postkasti uudiskirju või saata
+            sinna huvipakkuva kirja edasi.
           </p>
           <div className="mailbox-panel">
             <span>Rakenduse jälgitav postkast</span>
@@ -54,7 +54,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             </ol>
             <p>
               Edaspidi jõuavad selle allika kirjad ühisesse postkasti. Importija
-              otsib neist CFP-sid ja teadusüritusi ning lisab leitud kuulutused
+              otsib neist CFP-sid ja teadussündmusi ning lisab leitud kuulutused
               tabelisse automaatselt.
             </p>
           </section>
@@ -88,7 +88,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             <p>
               Kui kahe kontrolli vahel saabub üle 30 kirja, võivad vanemad
               sellest kontrollist välja jääda. Kui kirjast sobivat CFP-d või
-              teadusüritust ei leita, tabelisse uut rida ei teki.
+              teadussündmust ei leita, tabelisse uut rida ei teki.
             </p>
             <p>
               Kirja tekst saadetakse OpenAI-le andmete tuvastamiseks. Edasta
@@ -101,7 +101,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
         <>
           <p className="info-lead">
             CFP &amp; Events Tracker koondab e-kirjades avaldatud Call for
-            Papers (CFP) ja teadusüritused otsitavasse tabelisse. Veebileht
+            Papers (CFP) ja teadussündmused otsitavasse tabelisse. Veebileht
             kuvab andmeid; kirjade lugemine ja mudeli töö käivad taustal.
           </p>
           <section>
@@ -124,7 +124,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               <li>
                 <strong>OpenAI</strong>
                 <span>
-                  Mudel leiab kirja tekstist CFP-d ja üritused ning eraldab
+                  Mudel leiab kirja tekstist CFP-d ja sündmused ning eraldab
                   pealkirja, kuupäevad, korraldaja, lingid ja muud põhiandmed.
                 </span>
               </li>

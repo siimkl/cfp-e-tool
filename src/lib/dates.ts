@@ -2,6 +2,30 @@ import { format, parseISO } from 'date-fns';
 import { et } from 'date-fns/locale';
 import type { Item } from '../types';
 export { isPast, isNew, primaryDate } from '../../shared/core.js';
+export type AddedPeriod =
+  'all' | 'today' | 'yesterday' | 'week' | 'last7' | 'month' | 'last30';
+
+export function matchesAddedPeriod(
+  createdAt: string,
+  period: AddedPeriod,
+  today: string,
+): boolean {
+  if (period === 'all') return true;
+  const added = todayInTallinn(new Date(createdAt));
+  const current = new Date(today + 'T00:00:00Z');
+  const daysBack = (days: number) =>
+    new Date(current.getTime() - days * 86400000).toISOString().slice(0, 10);
+  if (period === 'today') return added === today;
+  if (period === 'yesterday') return added === daysBack(1);
+  // Calendar periods follow Tallinn dates, with Monday as the start of the week.
+  const start =
+    period === 'week'
+      ? daysBack((current.getUTCDay() + 6) % 7)
+      : period === 'month'
+        ? today.slice(0, 7) + '-01'
+        : daysBack(period === 'last7' ? 6 : 29);
+  return added >= start && added <= today;
+}
 export function todayInTallinn(now = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Europe/Tallinn',

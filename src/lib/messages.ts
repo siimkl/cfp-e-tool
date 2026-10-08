@@ -26,7 +26,7 @@ export function translateFieldValidation(event: FormEvent<HTMLFormElement>) {
 }
 
 const validationMessages: Record<string, string> = {
-  'Choose CFP or Event.': 'Vali Call for Papers (CFP) või üritus.',
+  'Choose CFP or Event.': 'Vali Call for Papers (CFP) või sündmus.',
   'A title is required.': 'Pealkiri on kohustuslik.',
   'Title must be 500 characters or fewer.':
     'Pealkiri võib olla kuni 500 tähemärki pikk.',
@@ -35,11 +35,11 @@ const validationMessages: Record<string, string> = {
   'Enter an event start date before an end date.':
     'Sisesta enne lõppkuupäeva ka alguskuupäev.',
   'Event end cannot precede event start.':
-    'Ürituse lõpp ei saa olla enne algust.',
+    'Sündmuse lõpp ei saa olla enne algust.',
   'Use a separate CFP for a submission deadline.':
     'Esitamise tähtaja jaoks lisa eraldi Call for Papers (CFP).',
   'Use a separate Event for event dates.':
-    'Toimumiskuupäevade jaoks lisa eraldi üritus.',
+    'Toimumiskuupäevade jaoks lisa eraldi sündmus.',
   'Announcement URL must be a valid HTTP or HTTPS address.':
     'Kuulutuse link peab olema kehtiv HTTP- või HTTPS-aadress.',
   'Topics must be short text keywords.':

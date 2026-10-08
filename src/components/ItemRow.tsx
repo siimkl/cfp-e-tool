@@ -35,7 +35,7 @@ export function ItemRow({
           className={'type-badge ' + item.item_type.toLowerCase()}
           title={item.item_type === 'CFP' ? 'Call for Papers' : undefined}
         >
-          {item.item_type === 'CFP' ? 'CFP' : 'Üritus'}
+          {item.item_type === 'CFP' ? 'CFP' : 'Sündmus'}
         </span>
         {isNew(item) && <span className="new-badge">Uus</span>}
         {item.archived && <span className="archived-badge">Arhiveeritud</span>}

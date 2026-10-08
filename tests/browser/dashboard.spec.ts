@@ -181,6 +181,69 @@ test('public read, search, topics, date filtering and mobile layout', async ({
     fullPage: true,
   });
 });
+test('added-date filter uses Tallinn dates and Monday calendar weeks', async ({
+  page,
+}) => {
+  await page.clock.install({ time: new Date('2026-10-08T12:00:00Z') });
+  const rows = [
+    item('today', {
+      title: 'Added today',
+      created_at: '2026-10-07T21:30:00Z',
+      deadline: '2027-01-01',
+    }),
+    item('yesterday', {
+      title: 'Added yesterday',
+      created_at: '2026-10-07T20:30:00Z',
+      deadline: '2027-01-01',
+    }),
+    item('monday', {
+      title: 'Added Monday',
+      created_at: '2026-10-05T10:00:00Z',
+      deadline: '2027-01-01',
+    }),
+    item('sunday', {
+      title: 'Added Sunday',
+      created_at: '2026-10-04T10:00:00Z',
+      deadline: '2027-01-01',
+    }),
+    item('month', {
+      title: 'Added this month',
+      created_at: '2026-10-01T10:00:00Z',
+      deadline: '2027-01-01',
+    }),
+    item('previous', {
+      title: 'Added last month',
+      created_at: '2026-09-30T10:00:00Z',
+      deadline: '2027-01-01',
+    }),
+  ];
+  await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
+    route.fulfill({ json: rows }),
+  );
+  await page.goto('/');
+  await expect(page.locator('.metric')).toHaveCount(2);
+  const filter = page.getByRole('combobox', { name: 'Lisamise aeg' });
+  await filter.selectOption('today');
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(
+    page.getByRole('heading', { name: 'Added today', exact: true }),
+  ).toBeVisible();
+  await filter.selectOption('yesterday');
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(
+    page.getByRole('heading', { name: 'Added yesterday', exact: true }),
+  ).toBeVisible();
+  await filter.selectOption('week');
+  await expect(page.locator('tbody tr')).toHaveCount(3);
+  await filter.selectOption('last7');
+  await expect(page.locator('tbody tr')).toHaveCount(4);
+  await filter.selectOption('month');
+  await expect(page.locator('tbody tr')).toHaveCount(5);
+  await page.getByRole('button', { name: 'Lähtesta filtrid' }).click();
+  await expect(filter).toHaveValue('all');
+  await expect(page.locator('tbody tr')).toHaveCount(6);
+});
+
 test('staff login disables account creation', async ({ page }) => {
   const requests = await api(page);
   await page.goto('/');
@@ -216,8 +279,8 @@ test('staff can add CFP and event, edit, inspect provenance, archive, restore an
   await page.getByRole('button', { name: '+ Lisa kuulutus' }).click();
   await page.getByRole('combobox', { name: /^Liik/ }).selectOption('EVENT');
   await page.getByLabel('Pealkiri').fill('Staff conference');
-  await page.getByLabel('Ürituse algus').fill(day(40));
-  await page.getByLabel('Ürituse lõpp').fill(day(42));
+  await page.getByLabel('Sündmuse algus').fill(day(40));
+  await page.getByLabel('Sündmuse lõpp').fill(day(42));
   await page.getByRole('button', { name: 'Salvesta kuulutus' }).click();
   const card = page
     .locator('tbody tr')

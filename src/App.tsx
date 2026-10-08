@@ -12,7 +12,14 @@ import {
   publicItemColumns,
   supabase,
 } from './lib/supabase';
-import { isNew, isPast, primaryDate, todayInTallinn } from './lib/dates';
+import {
+  isNew,
+  isPast,
+  primaryDate,
+  todayInTallinn,
+  matchesAddedPeriod,
+  type AddedPeriod,
+} from './lib/dates';
 import { makeDedupeKey } from './lib/dedupe';
 import type { Item, ItemInput, Source } from './types';
 import { ItemRow } from './components/ItemRow';
@@ -29,7 +36,7 @@ type Tab = 'All' | 'CFPs' | 'Events' | 'New' | 'Past' | 'Archived';
 const tabLabels: Record<Tab, string> = {
   All: 'Kõik',
   CFPs: 'Call for Papers (CFP)',
-  Events: 'Üritused',
+  Events: 'Sündmused',
   New: 'Uued',
   Past: 'Möödunud',
   Archived: 'Arhiveeritud',
@@ -66,6 +73,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [topic, setTopic] = useState('');
   const [sort, setSort] = useState('date');
+  const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('all');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
   const [sources, setSources] = useState<Source[]>([]);
@@ -195,6 +203,8 @@ export default function App() {
           if (tab === 'Events' && item.item_type !== 'EVENT') return false;
           if (tab === 'New' && !isNew(item)) return false;
           if (topic && !item.topics.includes(topic)) return false;
+          if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
+            return false;
           return [
             item.title,
             item.journal,
@@ -215,7 +225,7 @@ export default function App() {
                 primaryDate(b) || '9999',
               ) || a.title.localeCompare(b.title),
         ),
-    [items, tab, admin, topic, query, sort, today],
+    [items, tab, admin, topic, query, sort, today, addedPeriod],
   );
   async function save(data: ItemInput) {
     if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
@@ -324,7 +334,7 @@ export default function App() {
             </span>
             <span>
               CFP &amp; Events Tracker
-              <small>Call for Papers ja teadusüritused</small>
+              <small>Call for Papers ja teadussündmused</small>
             </span>
           </a>
           <div className="header-actions">
@@ -359,10 +369,9 @@ export default function App() {
                   current.filter((i) => i.item_type === 'CFP').length,
                 ],
                 [
-                  'Tulevased üritused',
+                  'Tulevased sündmused',
                   current.filter((i) => i.item_type === 'EVENT').length,
                 ],
-                ['Uued sel nädalal', current.filter((i) => isNew(i)).length],
               ].map(([label, count]) => (
                 <div className="metric" key={label}>
                   <span>{label}</span>
@@ -406,6 +415,23 @@ export default function App() {
                 ))}
               </div>
               <div className="search-row">
+                <label>
+                  <span className="sr-only">Lisamise aeg</span>
+                  <select
+                    value={addedPeriod}
+                    onChange={(e) =>
+                      setAddedPeriod(e.target.value as AddedPeriod)
+                    }
+                  >
+                    <option value="all">Kõik lisamisajad</option>
+                    <option value="today">Täna lisatud</option>
+                    <option value="yesterday">Eile lisatud</option>
+                    <option value="week">Sel nädalal lisatud</option>
+                    <option value="last7">Viimase 7 päeva jooksul</option>
+                    <option value="month">Sel kuul lisatud</option>
+                    <option value="last30">Viimase 30 päeva jooksul</option>
+                  </select>
+                </label>
                 <label className="search-field">
                   <span className="sr-only">Otsi kuulutusi</span>
                   <span aria-hidden="true">⌕</span>
@@ -487,6 +513,7 @@ export default function App() {
                       className="text-button"
                       onClick={() => {
                         setQuery('');
+                        setAddedPeriod('all');
                         setTopic('');
                         setTab('All');
                         setSort('date');
@@ -562,7 +589,7 @@ export default function App() {
                         </span>
                         <h3>Kuulutusi ei leitud</h3>
                         <p>
-                          {query || topic
+                          {query || topic || addedPeriod !== 'all'
                             ? 'Proovi teist otsingut või lähtesta filtrid.'
                             : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
                         </p>

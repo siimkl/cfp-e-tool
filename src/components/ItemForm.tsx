@@ -88,7 +88,7 @@ export function ItemForm({
           }
         >
           <option value="CFP">Call for Papers (CFP)</option>
-          <option value="EVENT">Üritus</option>
+          <option value="EVENT">Sündmus</option>
         </select>
       </label>
       <label>
@@ -137,7 +137,7 @@ export function ItemForm({
       ) : (
         <div className="form-pair">
           <label>
-            Ürituse algus
+            Sündmuse algus
             <input
               type="date"
               value={draft.event_start || ''}
@@ -145,7 +145,7 @@ export function ItemForm({
             />
           </label>
           <label>
-            Ürituse lõpp
+            Sündmuse lõpp
             <input
               type="date"
               value={draft.event_end || ''}
