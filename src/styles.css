@@ -886,3 +886,22 @@ blockquote {
     grid-row: 1;
   }
 }
+
+.header-source-link {
+  display: inline-block;
+  padding: 9px 15px;
+  border: 1px solid #ced6d0;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.header-source-link:hover {
+  background: #edf1eb;
+  text-decoration: none;
+}
+@media (max-width: 760px) {
+  .header-source-link {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+}

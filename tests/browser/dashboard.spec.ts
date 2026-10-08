@@ -246,26 +246,27 @@ test('added-date filter uses Tallinn dates and Monday calendar weeks', async ({
   await expect(page.locator('tbody tr')).toHaveCount(6);
 });
 
-test('staff login disables account creation', async ({ page }) => {
-  const requests = await api(page);
+test('header source link opens the guide instead of staff login', async ({
+  page,
+}) => {
+  await api(page);
   await page.goto('/');
-  await page.getByRole('button', { name: /Halduri sisselogimine/ }).click();
-  await page.getByRole('button', { name: 'Saada sisselogimislink' }).click();
-  await expect(page.getByLabel('E-posti aadress')).toHaveJSProperty(
-    'validationMessage',
-    'Palun täida see väli.',
-  );
-  await page.getByLabel('E-posti aadress').fill('invited@example.org');
-  await page.getByRole('button', { name: 'Saada sisselogimislink' }).click();
   await expect(
-    page.getByText('Vaata oma postkastist sisselogimislinki.', {
-      exact: false,
+    page.getByRole('button', { name: /Halduri sisselogimine/ }),
+  ).toHaveCount(0);
+  await page
+    .locator('header')
+    .getByRole('link', { name: /Lisa uus allikas/ })
+    .click();
+  await expect(
+    page.getByRole('heading', {
+      name: 'Lisa uus allikas, mida jälgida',
+      exact: true,
     }),
   ).toBeVisible();
-  expect(requests.find((r) => r.url.includes('/otp'))?.data.create_user).toBe(
-    false,
-  );
+  await expect(page).toHaveURL(/#\/allikad$/);
 });
+
 test('staff can add CFP and event, edit, inspect provenance, archive, restore and delete', async ({
   page,
 }) => {
@@ -307,7 +308,7 @@ test('staff can add CFP and event, edit, inspect provenance, archive, restore an
   await expect(card).toHaveCount(0);
   await page.getByRole('button', { name: 'Logi välja' }).click();
   await expect(
-    page.getByRole('button', { name: /Halduri sisselogimine/ }),
+    page.locator('header').getByRole('link', { name: /Lisa uus allikas/ }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: '+ Lisa kuulutus' }),

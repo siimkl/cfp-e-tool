@@ -344,15 +344,9 @@ export default function App() {
                 <button onClick={() => void logout()}>Logi välja</button>
               </>
             ) : (
-              <button
-                disabled={!configurationReady || !authReady}
-                onClick={() => {
-                  setLoginMessage('');
-                  setDialog({ kind: 'login' });
-                }}
-              >
-                Halduri sisselogimine <span aria-hidden="true">↗</span>
-              </button>
+              <a className="header-source-link" href="#/allikad">
+                Lisa uus allikas, mida jälgida <span aria-hidden="true">↗</span>
+              </a>
             )}
           </div>
         </div>
