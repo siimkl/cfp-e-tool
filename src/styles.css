@@ -700,6 +700,7 @@ blockquote {
   display: none;
 }
 .table-disclaimer {
+  text-align: center;
   margin: 16px 0 0;
   color: #617368;
   font-size: 12px;
