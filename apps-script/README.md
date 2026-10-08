@@ -60,3 +60,9 @@ New Supabase secret keys are sent in `apikey`, not as bearer JWTs. Legacy servic
 ## Estonian topic categories
 
 Topic labels are always stored in Estonian. The importer’s structured-output schema and validation use `ACADEMIC_TOPICS` from `shared/core.js`; the staff editor offers the same categories. Migration `002_estonian_topics.sql` translates legacy labels and enforces the vocabulary in PostgreSQL. Other announcement text stays in its source language. To extend the vocabulary, update the shared list and add a migration replacing `items_topics_estonian` before deploying the updated importer and editor.
+
+## Source statistics
+
+Migration `003_source_statistics.sql` adds a private receipt ledger and a public aggregate-only `source_statistics()` RPC. Each normal inbox run upserts one receipt for every message in its latest-30 window, even if already processed or containing no announcements. This provides cumulative unique-message counts without rereading the historical mailbox. `refreshSourceStatistics()` refreshes the same window without calling OpenAI; run it once in the Apps Script editor to populate the overview immediately, or wait for the next scheduled import.
+
+Classification is conservative and independent of the model: direct sources require List-ID or List-Unsubscribe headers, and no forward/reply headers, subject prefixes or quoted/forwarded-body markers. Unknown mail is excluded, not guessed to be direct. Source identity uses List-ID when present, otherwise the actual sender. Forward detection is heuristic: stripped forwarding markers cannot always be recognised, and some genuine newsletters with quoted correspondence may be excluded. Counts demonstrate observed receipt, not current subscription membership. Public results contain source names/domains, counts and first/last dates only; message IDs and source keys remain private. No body or subject is stored in this ledger.

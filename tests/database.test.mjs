@@ -56,7 +56,35 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
     );
     await db.exec(`insert into public.items(item_type,title,archived) values ('CFP','Hidden record',true);
       insert into processed_emails(message_id,received_at,processing_status) values ('mail1',now(),'SUCCESS');`);
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/003_source_statistics.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    await db.exec(`insert into source_receipts(message_id,source_key,source_name,source_domain,source_kind,classification,received_at) values
+      ('direct1','list:journal.org','Journal','journal.org','LIST','DIRECT','2026-10-01'),
+      ('direct2','list:journal.org','Journal','journal.org','LIST','DIRECT','2026-10-02'),
+      ('forward1',null,null,null,null,'FORWARDED','2026-10-03'),
+      ('unknown1',null,null,null,null,'UNKNOWN','2026-10-04');`);
     await db.exec('set role anon');
+    await assert.rejects(
+      db.query('select * from source_receipts'),
+      /permission denied/,
+    );
+    const sourceStats = (await db.query('select * from source_statistics()'))
+      .rows;
+    assert.equal(sourceStats.length, 1);
+    assert.equal(Number(sourceStats[0].email_count), 2);
+    assert.equal(sourceStats[0].source_name, 'Journal');
+    assert.ok(!('message_id' in sourceStats[0]));
+    await assert.rejects(
+      db.query('delete from source_receipts'),
+      /permission denied/,
+    );
     assert.equal((await db.query('select * from items')).rows.length, 6);
     for (const sql of [
       "insert into items(item_type,title) values('CFP','bad')",

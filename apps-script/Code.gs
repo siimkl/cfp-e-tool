@@ -223,6 +223,16 @@ function getCandidateMessages() {
   messages = messages.slice(0, config.maxEmails);
   RUN.emails_seen = messages.length;
   if (!messages.length) return [];
+  // Count receipts independently of model extraction and its retry status.
+  // Rechecking the same message replaces its classification, never adds a count.
+  messages.forEach(function (message) {
+    rest(
+      'source_receipts?on_conflict=message_id',
+      'post',
+      classifySourceReceipt(message),
+      'resolution=merge-duplicates,return=minimal'
+    );
+  });
   var ledger = getProcessedEmails(
     messages.map(function (message) {
       return message.getId();
@@ -237,6 +247,95 @@ function getCandidateMessages() {
       ) < 0
     );
   });
+}
+
+function classifySourceReceipt(message) {
+  var header = function (name) {
+    return String(message.getHeader(name) || '').trim();
+  };
+  var receipt = {
+    message_id: message.getId(),
+    received_at: message.getDate().toISOString(),
+    classification: 'UNKNOWN',
+    source_key: null,
+    source_name: null,
+    source_domain: null,
+    source_kind: null
+  };
+  var subject = message.getSubject();
+  var body = message.getPlainBody();
+  var html = message.getBody();
+  // Deliberately conservative: excluded/ambiguous messages can still generate
+  // announcements, but must not make a staff member appear as a subscribed source.
+  if (
+    /^\s*(?:(?:re|aw|vs|fw|fwd|ed|edasi|vl)\s*:\s*)+/i.test(subject) ||
+    header('Resent-From') ||
+    header('X-Forwarded-For') ||
+    header('X-Forwarded-To') ||
+    header('In-Reply-To') ||
+    header('References') ||
+    /(?:forwarded message|begin forwarded|edastatud kiri|edasi saadetud|algne sõnum|original message|ursprüngliche nachricht)/i.test(
+      body
+    ) ||
+    /(?:^|\n)\s*(?:From|Saatja|Von):[^\n]+\n[\s\S]{0,600}(?:To|Saaja|Subject|Teema|Sent|Saadetud):/i.test(
+      body
+    ) ||
+    /gmail_quote|gmail_attr|yahoo_quoted|moz-cite-prefix|divRplyFwdMsg|<blockquote\b/i.test(
+      html
+    )
+  ) {
+    receipt.classification = 'FORWARDED';
+    return receipt;
+  }
+  var from = message.getFrom();
+  var address = (from.match(/<([^>]+)>/) || [null, from])[1]
+    .toLowerCase()
+    .trim();
+  var domain = address.split('@')[1];
+  if (!domain || !/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(domain)) return receipt;
+  var list = header('List-ID');
+  var listId = (list.match(/<([^>]+)>/) || [null, list])[1]
+    .toLowerCase()
+    .trim();
+  var hasList = /^[a-z0-9_.-]+\.[a-z0-9_-]+$/i.test(listId);
+  var unsubscribe = header('List-Unsubscribe');
+  // Plain correspondence without list evidence is not treated as a subscription.
+  if (!hasList && !/<(?:https?:\/\/|mailto:)[^<>\s]+>/i.test(unsubscribe))
+    return receipt;
+  var name = hasList
+    ? list.replace(/<[^>]+>/g, '').trim()
+    : from.replace(/<[^>]+>/g, '').trim();
+  name = name
+    .replace(/^"|"$/g, '')
+    .replace(/[\r\n\x00-\x1f]/g, ' ')
+    .trim();
+  if (!name || /@|=\?/.test(name)) name = hasList ? listId : domain;
+  receipt.classification = 'DIRECT';
+  receipt.source_kind = hasList ? 'LIST' : 'NEWSLETTER';
+  receipt.source_key = hasList ? 'list:' + listId : 'sender:' + address;
+  receipt.source_name = name.slice(0, 200);
+  receipt.source_domain = domain;
+  return receipt;
+}
+
+// Refresh source counts immediately without calling OpenAI or importing items.
+function refreshSourceStatistics() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000))
+    throw new Error('Importer is running; try again after it finishes.');
+  try {
+    CONFIG = null;
+    getConfig();
+    assertMailboxAccount();
+    RUN = { deadline: Date.now() + 270000, emails_seen: 0 };
+    getCandidateMessages();
+    console.log(
+      'Allikate statistika uuendatud. Kontrollitud kirju: ' + RUN.emails_seen
+    );
+  } finally {
+    RUN = null;
+    lock.releaseLock();
+  }
 }
 
 function processMessage(message) {

@@ -53,7 +53,9 @@ export default function App() {
       ? 'sources'
       : window.location.hash === '#/arhitektuur'
         ? 'architecture'
-        : null;
+        : window.location.hash === '#/jalgitavad-allikad'
+          ? 'statistics'
+          : null;
   const [infoPage, setInfoPage] = useState(getInfoPage);
   useEffect(() => {
     const navigate = () => {
@@ -606,6 +608,7 @@ export default function App() {
         <span>ÜTI CFP &amp; Sündmuste jälgija</span>
         <span>Teadustöö võimalused ühes kohas.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
+          <a href="#/jalgitavad-allikad">Jälgitavad allikad</a>
           <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
         </nav>
       </footer>

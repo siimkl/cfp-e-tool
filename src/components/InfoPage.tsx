@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
+import { SourceStatistics } from './SourceStatistics';
 
-export type InfoPageKind = 'sources' | 'architecture';
+export type InfoPageKind = 'sources' | 'architecture' | 'statistics';
 const mailbox = 'callsevents208@gmail.com';
 
 export function InfoPage({ kind }: { kind: InfoPageKind }) {
@@ -8,7 +9,9 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
   const title =
     kind === 'sources'
       ? 'Lisa uus allikas, mida jälgida'
-      : 'CFP rakenduse arhitektuur';
+      : kind === 'statistics'
+        ? 'Jälgitavad allikad'
+        : 'CFP rakenduse arhitektuur';
   useEffect(() => {
     document.title = `${title} · ÜTI CFP & Sündmuste jälgija`;
     heading.current?.focus();
@@ -25,7 +28,9 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       <h1 ref={heading} tabIndex={-1}>
         {title}
       </h1>
-      {kind === 'sources' ? (
+      {kind === 'statistics' ? (
+        <SourceStatistics />
+      ) : kind === 'sources' ? (
         <>
           <p className="info-lead">
             Aita tuua Call for Papers (CFP) ja teadussündmuste teated ühte
@@ -60,6 +65,28 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
           </section>
           <section>
             <h2>2. Saada oma postkastist kiri edasi</h2>
+            <div
+              className="forward-warning"
+              role="note"
+              aria-label="Hoiatus konfidentsiaalse info kohta"
+            >
+              <strong>
+                Ära saada edasi arutelulõime ega konfidentsiaalset infot.
+              </strong>
+              <p>
+                Kui oled kirja üle kellegagi arutanud, ära edasta kogu
+                kirjavahetust. Eemalda varasemad vastused, isiklikud
+                kommentaarid, kontaktandmed ja muu mitteavalik info. Saada
+                ainult avaldamiseks mõeldud algne kuulutus või selle tekst koos
+                lingiga.
+              </p>
+              <p>
+                Kirja sisu töötleb väline keelemudel (OpenAI). Automaatne
+                töötlus ja teksti eraldamine võivad eksida; konfidentsiaalsuse
+                täielikku kaitset ei saa eeldada. Ära edasta tundlikku teavet ka
+                siis, kui arvad, et mudel peaks seda ignoreerima.
+              </p>
+            </div>
             <p>
               Kui saad huvitava CFP, konverentsi, seminari või töötoa teate,
               vali oma postkastis <strong>„Saada edasi”</strong> ja määra

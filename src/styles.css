@@ -706,6 +706,41 @@ blockquote {
   font-size: 12px;
   line-height: 1.6;
 }
+.forward-warning {
+  background: #fff0ee;
+  border: 1px solid #d77a70;
+  border-left: 4px solid #b3352a;
+  color: #92291f;
+  padding: 16px 18px;
+  border-radius: 5px;
+  margin: 14px 0 18px;
+}
+.source-statistics-table {
+  width: 100%;
+  min-width: 660px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.source-statistics-table th,
+.source-statistics-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px;
+  border-bottom: 1px solid #d8e0d6;
+}
+.source-statistics-table th {
+  background: #edf1eb;
+  font-size: 12px;
+}
+.source-statistics-table td small {
+  display: block;
+  color: #617368;
+  margin-top: 4px;
+}
+.source-statistics-table td:first-child {
+  overflow-wrap: anywhere;
+  max-width: 280px;
+}
 .topic-picker {
   border: 1px solid #d6ded3;
   border-radius: 5px;

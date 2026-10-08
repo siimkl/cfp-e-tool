@@ -401,3 +401,54 @@ test('table countdown distinguishes today, urgency boundaries, ongoing and past 
   await expect(row('Past CFP')).toHaveClass(/date-past/);
   await expect(row('Past CFP')).toContainText('Möödunud · 1 päev tagasi');
 });
+
+test('public source statistics show aggregate counts and forwarding guide has a warning', async ({
+  page,
+}) => {
+  const requests = await api(page);
+  await page.route(
+    'https://cfp-test.supabase.co/rest/v1/rpc/source_statistics*',
+    (route) =>
+      route.fulfill({
+        json: [
+          {
+            source_name: 'Example Journal',
+            source_domain: 'journal.example.org',
+            source_kind: 'LIST',
+            email_count: 12,
+            first_received_at: '2026-09-01T12:00:00Z',
+            last_received_at: '2026-10-08T12:00:00Z',
+          },
+        ],
+      }),
+  );
+  await page.goto('/');
+  await page
+    .locator('footer')
+    .getByRole('link', { name: 'Jälgitavad allikad' })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Jälgitavad allikad', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('cell', { name: '12', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Example Journal', { exact: true }),
+  ).toBeVisible();
+  expect(
+    requests.some((r) => /source_receipts|processed_emails/.test(r.url)),
+  ).toBe(false);
+  await page.reload();
+  await expect(
+    page.getByText('Example Journal', { exact: true }),
+  ).toBeVisible();
+  await page
+    .locator('header')
+    .getByRole('link', { name: /Lisa uus allikas/ })
+    .click();
+  await expect(page.getByRole('note')).toContainText(
+    'Ära saada edasi arutelulõime ega konfidentsiaalset infot.',
+  );
+  await expect(page.getByRole('note')).toContainText('OpenAI');
+});

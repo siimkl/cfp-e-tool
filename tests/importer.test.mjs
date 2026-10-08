@@ -35,6 +35,7 @@ function harness() {
     processed_emails: [],
     item_sources: [],
     automation_runs: [],
+    source_receipts: [],
   };
   const state = {
     extractions: [],
@@ -171,6 +172,7 @@ function message(
     getThread: () => ({ getId: () => 'thread1' }),
     getFrom: () => 'Editor <editor@example.org>',
     getSubject: () => 'Academic newsletter',
+    getHeader: () => '',
     getDate: () => new Date('2026-10-07T05:00:00Z'),
     getPlainBody: () => body,
     getBody: () =>
@@ -186,6 +188,72 @@ test('irrelevant email becomes NO_ITEMS and is never re-extracted', () => {
   assert.equal(
     state.calls.filter((call) => call.url.includes('openai')).length,
     1,
+  );
+});
+
+test('source statistics count direct list mail once, exclude forwards and unknown senders', () => {
+  const { context: c, db } = harness();
+  const direct = {
+    ...message('list1'),
+    getHeader: (name) =>
+      name === 'List-ID' ? 'Journal Updates <updates.journal.org>' : '',
+  };
+  const forward = {
+    ...direct,
+    getId: () => 'forward1',
+    getSubject: () => 'Fwd: Journal Updates',
+  };
+  const hiddenForward = {
+    ...direct,
+    getId: () => 'forward2',
+    getPlainBody: () =>
+      '---------- Forwarded message ---------\nOriginal announcement',
+  };
+  const reply = {
+    ...direct,
+    getId: () => 'reply1',
+    getHeader: (name) =>
+      name === 'In-Reply-To' ? '<prior>' : direct.getHeader(name),
+  };
+  const newsletter = {
+    ...message('newsletter'),
+    getHeader: (name) =>
+      name === 'List-Unsubscribe' ? '<https://journal.org/unsubscribe>' : '',
+  };
+  assert.equal(c.classifySourceReceipt(direct).classification, 'DIRECT');
+  assert.equal(c.classifySourceReceipt(newsletter).source_kind, 'NEWSLETTER');
+  for (const mail of [forward, hiddenForward, reply])
+    assert.equal(c.classifySourceReceipt(mail).classification, 'FORWARDED');
+  assert.equal(
+    c.classifySourceReceipt(message('personal')).classification,
+    'UNKNOWN',
+  );
+  c.GmailApp = {
+    getAliases: () => [],
+    search: () => [
+      {
+        getMessages: () => [direct, forward, hiddenForward, reply, newsletter],
+      },
+    ],
+  };
+  c.RUN = { emails_seen: 0 };
+  db.processed_emails.push({
+    message_id: 'list1',
+    processing_status: 'NO_ITEMS',
+  });
+  c.getCandidateMessages();
+  c.getCandidateMessages();
+  assert.equal(db.source_receipts.length, 5);
+  assert.equal(
+    db.source_receipts.filter((r) => r.classification === 'DIRECT').length,
+    2,
+  );
+  assert.equal(
+    db.source_receipts.find((r) => r.message_id === 'list1').source_name,
+    'Journal Updates',
+  );
+  assert.ok(
+    db.source_receipts.every((r) => !('body' in r) && !('subject' in r)),
   );
 });
 
