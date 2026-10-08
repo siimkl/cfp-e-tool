@@ -604,7 +604,6 @@ export default function App() {
         <span>CFP &amp; Sündmuste jälgija</span>
         <span>Teadustöö võimalused ühes kohas.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
-          <a href="#/allikad">Lisa uus allikas, mida jälgida</a>
           <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
         </nav>
       </footer>
