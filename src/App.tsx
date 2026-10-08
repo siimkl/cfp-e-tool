@@ -333,7 +333,7 @@ export default function App() {
               CF
             </span>
             <span>
-              CFP &amp; Events Tracker
+              CFP &amp; Sündmuste jälgija
               <small>Call for Papers ja teadussündmused</small>
             </span>
           </a>
@@ -603,7 +603,7 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span>CFP &amp; Events Tracker</span>
+        <span>CFP &amp; Sündmuste jälgija</span>
         <span>Teadustöö võimalused ühes kohas.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
           <a href="#/allikad">Lisa uus allikas, mida jälgida</a>
