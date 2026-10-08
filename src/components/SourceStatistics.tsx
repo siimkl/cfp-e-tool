@@ -48,13 +48,15 @@ export function SourceStatistics() {
   return (
     <>
       <p className="info-lead">
-        Otse postkasti saabunud meililistide ja uudiskirjade ülevaade. Kirjade
-        arv hõlmab ka teateid, millest CFP-d või sündmust ei leitud.
+        Otse saabunud kirjad ajakirjade kaupa. Sama kirjastaja või meililisti
+        kaudu saabuvad eri ajakirjad kuvatakse eraldi ridadel.
       </p>
       <p>
-        Allikas tuvastatakse meililisti või uudiskirja päiste järgi.
-        Edasisaadetud kirju, vastuseid ja ebaselge päritoluga kirju ei loendata.
-        See ülevaade ei kinnita, et tellimus on endiselt aktiivne.
+        Ajakiri tuvastatakse kirjaga seotud kuulutuste ajakirjanime järgi. Kui
+        ajakirja pole tuvastatud, kuvatakse kiri üldise meililisti või
+        uudiskirja all, märkega „Ajakiri tuvastamata”. Edasisaatmise tunnustega
+        kirju, vastuseid ja ebaselge päritoluga kirju ei loendata. See ülevaade
+        ei kinnita, et tellimus on endiselt aktiivne.
       </p>
       <p className="muted">
         Loendus koguneb automaatika kontrollitud kirjadest. Iga kontroll hõlmab
@@ -72,9 +74,16 @@ export function SourceStatistics() {
       ) : rows.length ? (
         <>
           <p>
-            {rows.length} allikat · kokku{' '}
-            {rows.reduce((sum, row) => sum + Number(row.email_count), 0)} otse
-            saabunud kirja
+            {rows.filter((row) => row.source_kind === 'JOURNAL').length}{' '}
+            ajakirja
+            {' · '}
+            {rows.filter((row) => row.source_kind !== 'JOURNAL').length} üldist
+            allikat
+          </p>
+          <p className="muted">
+            Sama kiri läheb ühe ajakirja juures arvesse üks kord. Mitut ajakirja
+            käsitlev kiri võib esineda mitme ajakirja loenduses; ridade arve ei
+            liideta kirjade koguarvuks.
           </p>
           <div
             className="table-scroll"
@@ -101,9 +110,16 @@ export function SourceStatistics() {
                     <td>
                       <strong>{row.source_name}</strong>
                       <small>{row.source_domain}</small>
+                      {row.source_kind !== 'JOURNAL' && (
+                        <small>Ajakiri tuvastamata</small>
+                      )}
                     </td>
                     <td>
-                      {row.source_kind === 'LIST' ? 'Meililist' : 'Uudiskiri'}
+                      {row.source_kind === 'JOURNAL'
+                        ? 'Ajakiri'
+                        : row.source_kind === 'LIST'
+                          ? 'Üldine meililist'
+                          : 'Üldine uudiskiri'}
                     </td>
                     <td>{row.email_count}</td>
                     <td>{date(row.first_received_at)}</td>

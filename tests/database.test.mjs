@@ -145,6 +145,37 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
     );
     await db.exec("delete from items where title='Automated'");
     assert.equal((await db.query('select * from item_sources')).rows.length, 0);
+    await db.exec('reset role');
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/004_journal_source_statistics.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    await db.exec(`insert into processed_emails(message_id,received_at,processing_status) values
+      ('direct1',now(),'SUCCESS'),('direct2',now(),'SUCCESS'),('forward1',now(),'SUCCESS');
+      insert into items(item_type,title,journal) values
+      ('CFP','Alpha call','Journal Alpha'),('CFP','Alpha second call','Journal Alpha'),('CFP','Beta call','Journal Beta');
+      insert into item_sources(item_id,message_id) select id,'direct1' from items where title in ('Alpha call','Alpha second call','Beta call');
+      insert into item_sources(item_id,message_id) select id,'direct2' from items where title='Alpha call';
+      insert into item_sources(item_id,message_id) select id,'forward1' from items where title='Beta call';
+      set role anon;`);
+    const journals = (await db.query('select * from source_statistics()')).rows;
+    assert.equal(journals.length, 2);
+    assert.deepEqual(
+      journals.map((row) => [
+        row.source_name,
+        Number(row.email_count),
+        row.source_kind,
+      ]),
+      [
+        ['Journal Alpha', 2, 'JOURNAL'],
+        ['Journal Beta', 1, 'JOURNAL'],
+      ],
+    );
   } finally {
     await db.close();
   }
