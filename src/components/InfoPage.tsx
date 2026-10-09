@@ -182,8 +182,8 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               </li>
             </ol>
           </section>
-          <WorkflowDiagram />
           <ArchitectureDiagrams />
+          <WorkflowDiagram />
           <section>
             <h2>Millised tehnoloogiad mida teevad?</h2>
             <dl className="technology-list">

@@ -12,46 +12,46 @@ const nodes: Node[] = [
     x: 380,
     y: 45,
     kind: 'terminal',
-    lines: ['ALGUS · Google Apps Script', '04:00 / 16:00 või käsitsi käivitus'],
+    lines: [
+      'Postkasti kontroll algab',
+      'Umbes kell 04:00 ja 16:00 või käsitsi',
+    ],
   },
   {
     id: 'lock',
     x: 380,
     y: 165,
     kind: 'decision',
-    lines: ['Kas teine import', 'juba töötab?'],
+    lines: ['Kas postkasti juba', 'kontrollitakse?'],
   },
   {
     id: 'skipRun',
     x: 865,
     y: 165,
     kind: 'terminal',
-    lines: [
-      'Jah → jäta see käivitus vahele',
-      'Paralleelset importi ei alustata',
-    ],
+    lines: ['Lõpeta see käivitus', 'Varem alustatud kontroll jätkub'],
   },
   {
     id: 'config',
     x: 380,
     y: 295,
     kind: 'decision',
-    lines: ['Seaded ja Google’i', 'konto korras?'],
+    lines: ['Kas konto ja', 'seaded on õiged?'],
   },
   {
     id: 'stop',
     x: 865,
     y: 295,
     kind: 'exception',
-    lines: ['Ei → logi viga ja lõpeta', 'Vabasta käivituse lukk'],
+    lines: ['Salvesta veateade ja lõpeta', 'Haldur saab põhjuse üle vaadata'],
   },
   {
     id: 'gmail',
     x: 380,
     y: 425,
     lines: [
-      'Gmail → kuni 30 viimast saabunud kirja',
-      'Välja: saadetud kirjad ja mustandid',
+      'Võta kuni 30 viimast saabunud kirja',
+      'Saadetud kirju ja mustandeid ei loeta',
     ],
   },
   {
@@ -59,52 +59,52 @@ const nodes: Node[] = [
     x: 380,
     y: 555,
     kind: 'decision',
-    lines: ['Otse meililistist', 'või uudiskirjast?'],
+    lines: ['Kas kiri tuli', 'otse meililistist?'],
   },
   {
     id: 'count',
     x: 865,
     y: 555,
     kind: 'store',
-    lines: [
-      'Jah → uuenda allika kirjade loendust',
-      'Iga Gmaili kiri loetakse üks kord',
-    ],
+    lines: ['Lisa kiri allika statistikasse', 'Sama kirja ei loeta mitu korda'],
   },
   {
     id: 'ledger',
     x: 380,
     y: 715,
     kind: 'decision',
-    lines: ['Kiri lõplikult', 'töödeldud?'],
+    lines: ['Kas selle kirjaga', 'on juba lõpetatud?'],
   },
   {
     id: 'skipMail',
     x: 865,
     y: 715,
-    lines: ['Jah → jäta kiri vahele', 'Ka „leide pole” ja lõplik viga'],
+    lines: ['Jäta see kiri vahele', 'Jätka järgmise kirjaga'],
   },
   {
     id: 'budget',
     x: 380,
     y: 875,
     kind: 'decision',
-    lines: ['Tööaega on', 'veel alles?'],
+    lines: ['Kas jätkamiseks', 'on veel aega?'],
   },
   {
     id: 'partial',
     x: 865,
     y: 875,
     kind: 'exception',
-    lines: ['Ei → salvesta osalise töö kokkuvõte', 'Lõpeta ja vabasta lukk'],
+    lines: [
+      'Salvesta senise töö kokkuvõte',
+      'Lõpeta praegune postkasti kontroll',
+    ],
   },
   {
     id: 'model',
     x: 380,
     y: 1015,
     lines: [
-      'Märgi katse → OpenAI API',
-      'Leia kirja tekstist CFP-d ja sündmused',
+      'Lase keelemudelil kiri läbi vaadata',
+      'Leia CFP-d, sündmused ja nende andmed',
     ],
   },
   {
@@ -112,7 +112,7 @@ const nodes: Node[] = [
     x: 380,
     y: 1155,
     kind: 'decision',
-    lines: ['Vastus ja andmed', 'läbivad kontrolli?'],
+    lines: ['Kas vastus sobib', 'salvestamiseks?'],
   },
   {
     id: 'error',
@@ -120,8 +120,8 @@ const nodes: Node[] = [
     y: 1155,
     kind: 'exception',
     lines: [
-      'Ei / päring ebaõnnestus → märgi viga',
-      'Kuni 3 töötluskatset, siis lõplik viga',
+      'Salvesta veateade',
+      'Jätka järgmise kirjaga; proovi hiljem uuesti',
     ],
   },
   {
@@ -135,46 +135,46 @@ const nodes: Node[] = [
     id: 'empty',
     x: 865,
     y: 1325,
-    lines: ['Ei → märgi „leide pole”', 'Seda kirja uuesti ei analüüsita'],
+    lines: [
+      'Märgi kiri läbivaadatuks',
+      'Kuulutusi ei leitud; jätka järgmise kirjaga',
+    ],
   },
   {
     id: 'duplicate',
     x: 380,
     y: 1475,
     kind: 'decision',
-    lines: ['Kuulutus on', 'juba andmebaasis?'],
+    lines: ['Kas sama kuulutus', 'on juba olemas?'],
   },
   {
     id: 'merge',
     x: 865,
     y: 1475,
     lines: [
-      'Jah → ühenda olemasolevaga',
-      'Täienda puuduvat, säilita parandused',
+      'Täienda olemasolevat kuulutust',
+      'Säilita halduri tehtud parandused',
     ],
   },
   {
     id: 'insert',
     x: 380,
     y: 1615,
-    lines: ['Ei → lisa uus kuulutus', 'Iga leitud kuulutus eraldi kirjena'],
+    lines: ['Lisa uus kuulutus', 'Igale CFP-le ja sündmusele oma tabelirida'],
   },
   {
     id: 'save',
     x: 380,
     y: 1755,
     kind: 'store',
-    lines: [
-      'Supabase / PostgreSQL',
-      'Salvesta kuulutused, allikad ja kirja olek',
-    ],
+    lines: ['Salvesta kuulutused ja allikaviited', 'Märgi kiri läbivaadatuks'],
   },
   {
     id: 'next',
     x: 380,
     y: 1905,
     kind: 'decision',
-    lines: ['Veel töötlemata', 'kirju selles valimis?'],
+    lines: ['Kas valitud kirjade', 'hulgas on veel mõni?'],
   },
   {
     id: 'finish',
@@ -182,8 +182,8 @@ const nodes: Node[] = [
     y: 2055,
     kind: 'terminal',
     lines: [
-      'LÕPP · salvesta töö kokkuvõte',
-      'Vabasta lukk; oota järgmist käivitust',
+      'Postkasti kontroll on lõppenud',
+      'Salvesta kokkuvõte ja oota järgmist korda',
     ],
   },
   {
@@ -192,8 +192,8 @@ const nodes: Node[] = [
     y: 1755,
     kind: 'store',
     lines: [
-      'React → avalik tabel GitHub Pagesis',
-      'Loeb Supabase’i lehe laadimisel',
+      'Kuulutused jõuavad veebitabelisse',
+      'Uued andmed ilmuvad lehe värskendamisel',
     ],
   },
 ];
@@ -213,7 +213,7 @@ const edges: Edge[] = [
   { path: 'M380 350 V389', label: 'Jah', x: 400, y: 375 },
   { path: 'M380 461 V500' },
   { path: 'M515 555 H675', label: 'Jah', x: 590, y: 540 },
-  { path: 'M380 610 V660', label: 'Ei / ebaselge: ära loenda', x: 270, y: 638 },
+  { path: 'M380 610 V660', label: 'Ei / pole teada', x: 270, y: 638 },
   { path: 'M865 591 V635 H540 V650 H380 V660' },
   { path: 'M515 715 H675', label: 'Jah', x: 590, y: 700 },
   { path: 'M380 770 V820', label: 'Ei', x: 398, y: 800 },
@@ -230,8 +230,8 @@ const edges: Edge[] = [
   { path: 'M865 1511 V1685 H380 V1719' },
   { path: 'M380 1791 V1850' },
   {
-    path: 'M245 1905 H70 V875 H245',
-    label: 'Jah → järgmine kiri',
+    path: 'M245 1905 H70 V715 H245',
+    label: 'Jah: võta järgmine kiri',
     x: 155,
     y: 1878,
   },
@@ -239,7 +239,13 @@ const edges: Edge[] = [
   { path: 'M1055 715 H1100 V1905 H515', dashed: true },
   { path: 'M1055 1155 H1100', dashed: true },
   { path: 'M1055 1325 H1100', dashed: true },
-  { path: 'M570 1755 H675', label: 'Andmed', x: 615, y: 1740, dashed: true },
+  {
+    path: 'M570 1755 H675',
+    label: 'Veebilehel',
+    x: 615,
+    y: 1740,
+    dashed: true,
+  },
 ];
 
 export function WorkflowDiagram() {
@@ -247,9 +253,9 @@ export function WorkflowDiagram() {
     <section className="workflow-diagram-section">
       <h2>Protsessi vooskeem</h2>
       <p>
-        Romb tähistab otsust, kast töötlust ja sinine kast andmete salvestamist
-        või kuvamist. Katkendjoon näitab andmete liikumist või kirja
-        vahelejätmist.
+        Loe skeemi ülevalt alla. Iga küsimuse juures näitab „Jah” või „Ei”, kuhu
+        edasi liikuda. Kõigepealt valitakse kirjad, seejärel vaadatakse need
+        ükshaaval läbi. Ühes kirjas võib olla mitu kuulutust.
       </p>
       <figure className="workflow-figure">
         <div
@@ -268,16 +274,18 @@ export function WorkflowDiagram() {
               CFP ja sündmuste importimise protsess koos otsustuskohtadega
             </title>
             <desc id="workflow-desc">
-              Protsess algab kell 04 või 16 või käsitsi. Kontrollitakse lukku ja
-              seadistust. Gmailist valitakse kuni 30 kirja. Otse meililistist
-              saabunud kirjad loendatakse allikate statistikas. Juba töödeldud
-              kirjad jäetakse vahele. Tööaja olemasolul analüüsib OpenAI kirja.
-              Kontrollitakse vastuse vormingut, kuupäevi, eestikeelseid
-              kategooriaid ja linke. Vigased vastused lähevad korduskatsele,
-              leidudeta kirjad märgitakse lõpetatuks. Duplikaadid ühendatakse,
-              uued kuulutused lisatakse Supabase’i. See kordub iga kirja jaoks,
-              seejärel salvestatakse töö kokkuvõte ja vabastatakse lukk. Avalik
-              veebitabel loeb andmeid Supabase’ist.
+              Postkasti kontroll algab umbes kell 04 või 16 või käsitsi. Kui
+              kontroll juba käib või seaded pole õiged, uut kontrolli ei
+              alustata. Valitakse kuni 30 viimast saabunud kirja. Otse
+              meililistidest ja uudiskirjadest saabunud kirjad lisatakse
+              allikate statistikasse. Iga kirja puhul kontrollitakse, kas
+              sellega on juba lõpetatud ja kas jätkamiseks on aega. Keelemudel
+              otsib CFP-sid ja sündmusi. Seejärel kontrollitakse vastuse kuju,
+              kuupäevi, kategooriaid ja linke. Kui kuulutusi ei leita,
+              märgitakse kiri läbivaadatuks. Olemasolevaid kuulutusi
+              täiendatakse ja uued lisatakse andmebaasi. Nii jätkatakse
+              järgmiste kirjadega. Lõpus salvestatakse töö kokkuvõte. Tulemused
+              ilmuvad veebilehe laadimisel või värskendamisel.
             </desc>
             <defs>
               <marker
@@ -344,33 +352,49 @@ export function WorkflowDiagram() {
           </svg>
         </div>
         <figcaption>
-          Mobiilis saab skeemi külgsuunas kerida. Allikate loendus ei otsusta,
-          kas kirjast võib kuulutusi leida: ka edasisaadetud kiri jõuab
-          mudelini, kui see vajab töötlust.
+          Rombis on küsimus, kastis tegevus. Sinised kastid tähistavad
+          salvestamist või veebis kuvamist. Paremal kulgev katkendjoon viib
+          järgmise kirja juurde. Mobiilis saab skeemi külgsuunas kerida.
         </figcaption>
       </figure>
       <div className="info-note">
-        <h3>Mida kontrollitakse?</h3>
+        <h3>Mida tasub skeemi kohta teada?</h3>
         <ul>
           <li>
-            <strong>Enne töötlust:</strong> õige Google’i konto, vajalikud
-            seaded, paralleelse käivituse lukk ja kirja varasem töötlusolek.
+            <strong>Millised kirjad lähevad arvesse?</strong> Allikate
+            statistikas loetakse ainult otse meililistist või uudiskirjast
+            saabunud kirju. Kuulutusi otsitakse ka edasisaadetud kirjadest.
           </li>
           <li>
-            <strong>Mudeli vastuses:</strong> andmestruktuur, kuupäevad, CFP ja
-            sündmuse väljade sobivus, eestikeelsed kategooriad ning kirjas
-            leiduvad lingid.
+            <strong>Millal jäetakse kiri vahele?</strong> Kui see on juba läbi
+            vaadatud, ka siis, kui kuulutusi ei leitud. Samuti jäetakse vahele
+            kiri, mille läbivaatamine on kolm korda ebaõnnestunud.
           </li>
           <li>
-            <strong>Enne salvestamist:</strong> võimalik duplikaat pealkirja,
-            väljaandja, kuupäeva ja lingi põhjal. Tähtaega pikendatakse ainult
-            selge pikendamisteate korral.
+            <strong>Mida mudelilt oodatakse?</strong> Kuulutuse pealkiri ja
+            kokkuvõte peavad jääma algkeelde, sealhulgas eesti keelde. Mudel
+            valib ühe kuuest põhikategooriast ja täpsemad eestikeelsed
+            teemasildid.
           </li>
           <li>
-            <strong>Vea või ajalimiidi korral:</strong> ajutisi võrguvigu
-            korratakse piiratud arv kordi. Lõpetamata kiri saab järgmisel
-            käivitusel uue katse, kui see kuulub endiselt viimase 30 kirja
-            hulka; pärast kolme töötluskatset automaatne kordamine lõpeb.
+            <strong>Mida kontrollitakse automaatselt?</strong> Kas vastuses on
+            nõutud andmed, kuupäevad on võimalikud, kategooriad lubatud ja
+            lingid algses kirjas olemas. Need kontrollid ei taga, et mudel sai
+            kuulutusest õigesti aru: üksikasju tuleb kontrollida korraldajalt.
+          </li>
+          <li>
+            <strong>Kuidas kordusi välditakse?</strong> Iga leitud kuulutust
+            võrreldakse olemasolevatega pealkirja, väljaandja, kuupäeva ja lingi
+            järgi. Korduva kuulutuse juurde lisatakse uus allikaviide ja
+            täidetakse puuduvad andmed. Tähtaega pikendatakse ainult siis, kui
+            kirjas on selle kohta selge teade.
+          </li>
+          <li>
+            <strong>Mis saab pooleli jäänud kirjast?</strong> Vea korral
+            proovitakse seda hiljem uuesti, kokku kuni kolm korda. Kui
+            käivituseks ette nähtud aeg saab otsa, töö peatub. Järgmisel
+            käivitusel saab kiri uuesti kontrolli jõuda vaid siis, kui see on
+            endiselt 30 viimase saabunud kirja hulgas.
           </li>
         </ul>
       </div>
