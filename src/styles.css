@@ -192,7 +192,7 @@ main {
 }
 .search-row {
   display: grid;
-  grid-template-columns: 185px 205px minmax(180px, 1fr) 160px 160px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 15px;
 }
@@ -818,7 +818,7 @@ blockquote {
 .announcements-table th:nth-child(4) {
   width: 15%;
 }
-.announcements-table th:nth-child(6) {
+.announcements-table th:nth-child(7) {
   width: 155px;
 }
 .announcements-table td {
@@ -1049,4 +1049,30 @@ blockquote {
 .workflow-diagram-section h3 {
   font-size: 16px;
   margin-top: 0;
+}
+
+.announcements-table th:nth-child(2) {
+  width: 30%;
+}
+.announcements-table th:nth-child(5) {
+  width: 155px;
+}
+.category-cell {
+  font-size: 0.8rem;
+  color: #355343;
+  overflow-wrap: anywhere;
+}
+
+.architecture-scroll {
+  overflow-x: auto;
+  border: 1px solid #d6ded3;
+  border-radius: 10px;
+  background: white;
+}
+.architecture-scroll svg {
+  display: block;
+  width: 100%;
+  min-width: 800px;
+  color: #203d2e;
+  font-family: inherit;
 }

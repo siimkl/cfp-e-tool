@@ -6,6 +6,7 @@ import {
   useState,
   type FormEvent,
 } from 'react';
+import { ITEM_CATEGORIES } from '../shared/core.js';
 import type { Session } from '@supabase/supabase-js';
 import {
   configurationReady,
@@ -73,6 +74,7 @@ export default function App() {
   const [period, setPeriod] = useState('current');
   const [query, setQuery] = useState('');
   const [topic, setTopic] = useState('');
+  const [category, setCategory] = useState('');
   const [sort, setSort] = useState('date');
   const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('last7');
   const [dialog, setDialog] = useState<Dialog>(null);
@@ -206,6 +208,7 @@ export default function App() {
           if (tab === 'CFPs' && item.item_type !== 'CFP') return false;
           if (tab === 'Events' && item.item_type !== 'EVENT') return false;
           if (period === 'new' && !isNew(item)) return false;
+          if (category && item.category !== category) return false;
           if (topic && !item.topics.includes(topic)) return false;
           if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
             return false;
@@ -229,7 +232,18 @@ export default function App() {
                 primaryDate(b) || '9999',
               ) || a.title.localeCompare(b.title),
         ),
-    [items, tab, admin, topic, query, sort, today, addedPeriod, period],
+    [
+      items,
+      tab,
+      admin,
+      topic,
+      category,
+      query,
+      sort,
+      today,
+      addedPeriod,
+      period,
+    ],
   );
   async function save(data: ItemInput) {
     if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
@@ -451,6 +465,18 @@ export default function App() {
                   />
                 </label>
                 <label>
+                  <span className="sr-only">Kategooria</span>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                  >
+                    <option value="">Kõik kategooriad</option>
+                    {ITEM_CATEGORIES.map((value) => (
+                      <option key={value}>{value}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
                   <span className="sr-only">Teema</span>
                   <select
                     value={topic}
@@ -523,6 +549,7 @@ export default function App() {
                         setQuery('');
                         setAddedPeriod('last7');
                         setTopic('');
+                        setCategory('');
                         setTab('All');
                         setPeriod('current');
                         setSort('date');
@@ -563,6 +590,7 @@ export default function App() {
                               <th scope="col">Kuulutus / korraldaja</th>
                               <th scope="col">Kuupäev / järelejäänud aeg</th>
                               <th scope="col">Toimumiskoht</th>
+                              <th scope="col">Kategooria</th>
                               <th scope="col">Teemad</th>
                               {admin && <th scope="col">Haldus</th>}
                             </tr>
@@ -598,7 +626,7 @@ export default function App() {
                         </span>
                         <h3>Kuulutusi ei leitud</h3>
                         <p>
-                          {query || topic || addedPeriod !== 'all'
+                          {query || topic || category || addedPeriod !== 'all'
                             ? 'Proovi teist otsingut või lähtesta filtrid.'
                             : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
                         </p>

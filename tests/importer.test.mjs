@@ -14,6 +14,7 @@ const code = readFileSync(
 );
 const sample = {
   item_type: 'CFP',
+  category: 'Ühiskond ja sotsiaalteadused',
   title: 'Digital Society',
   journal: 'Academic Journal',
   organiser: null,
@@ -584,4 +585,38 @@ test('twice-daily schedule replaces only importer triggers and is idempotent', (
     triggers.slice(1).map((t) => t.hour),
     [4, 16],
   );
+});
+
+test('Estonian extraction stays Estonian through storage, with a required broad category', () => {
+  const { context: c, state, db } = harness();
+  state.extractions.push([
+    {
+      ...sample,
+      title: 'Eesti ühiskonna tulevik',
+      summary: 'Ootame uurimusi Eesti ühiskonna muutustest.',
+      category: 'Ühiskond ja sotsiaalteadused',
+    },
+  ]);
+  assert.equal(c.processMessage(message('estonian')), 'SUCCESS');
+  assert.equal(db.items[0].title, 'Eesti ühiskonna tulevik');
+  assert.equal(
+    db.items[0].summary,
+    'Ootame uurimusi Eesti ühiskonna muutustest.',
+  );
+  assert.equal(db.items[0].category, 'Ühiskond ja sotsiaalteadused');
+  const request = JSON.parse(
+    state.calls.find((call) => call.url.includes('openai')).options.payload,
+  );
+  assert.match(
+    JSON.stringify(request.input),
+    /NEVER translate them into English/,
+  );
+  assert.equal(
+    request.text.format.schema.properties.items.items.properties.category.enum
+      .length,
+    6,
+  );
+  state.extractions.push([{ ...sample, category: 'Education' }]);
+  assert.equal(c.processMessage(message('invalid-category')), 'ERROR');
+  assert.equal(db.items.length, 1);
 });

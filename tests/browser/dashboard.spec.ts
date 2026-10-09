@@ -9,6 +9,7 @@ function item(id: string, changes = {}) {
   return {
     id,
     item_type: 'CFP',
+    category: 'Ühiskond ja sotsiaalteadused',
     title: 'Research on Digital Society',
     journal: 'Digital Studies Journal',
     organiser: null,
@@ -33,6 +34,7 @@ async function api(page: Page, staff = false) {
     item('2', {
       item_type: 'EVENT',
       title: 'Research Methods Workshop',
+      category: 'Valdkondadeülene teadus',
       deadline: null,
       event_start: day(15),
       event_end: day(17),
@@ -379,7 +381,7 @@ test('table countdown distinguishes today, urgency boundaries, ongoing and past 
       event_end: '2026-10-09',
     }),
     item('past', { title: 'Past CFP', deadline: '2026-10-07' }),
-  ];
+  ].map(row => ({ ...row, created_at: '2026-10-08T10:00:00Z' }));
   await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
     route.fulfill({ json: rows }),
   );
@@ -458,4 +460,45 @@ test('public source statistics show aggregate counts and forwarding guide has a 
     'Ära saada edasi arutelulõime ega konfidentsiaalset infot.',
   );
   await expect(page.getByRole('note')).toContainText('OpenAI');
+});
+
+test('broad category filters announcements and architecture shows all three diagrams', async ({
+  page,
+}) => {
+  await api(page);
+  await page.goto('/');
+  await expect(
+    page.getByRole('columnheader', { name: 'Kategooria', exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole('combobox', { name: 'Kategooria', exact: true })
+    .selectOption('Valdkondadeülene teadus');
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody')).toContainText(
+    'Research Methods Workshop',
+  );
+  await page
+    .getByRole('combobox', { name: 'Kategooria', exact: true })
+    .selectOption('');
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  await page
+    .getByRole('link', { name: 'CFP rakenduse arhitektuur', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Tehniline arhitektuur', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Andmebaasi andmemudel', exact: true }),
+  ).toBeVisible();
+  await expect(page.locator('article svg')).toHaveCount(3);
+  await page.screenshot({
+    path: 'test-results/architecture-desktop.png',
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
 });

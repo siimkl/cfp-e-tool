@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { ACADEMIC_TOPICS } from '../../shared/core.js';
+import { ACADEMIC_TOPICS, ITEM_CATEGORIES } from '../../shared/core.js';
 import type { Item, ItemInput } from '../types';
 import {
   clearFieldValidation,
@@ -10,6 +10,7 @@ import { normaliseUrl, validateItem } from '../lib/dedupe';
 const empty: ItemInput = {
   item_type: 'CFP',
   title: '',
+  category: 'Valdkondadeülene teadus',
   journal: null,
   organiser: null,
   summary: null,
@@ -178,8 +179,19 @@ export function ItemForm({
           onChange={(e) => field('homepage_url', e.target.value)}
         />
       </label>
+      <label>
+        Kategooria
+        <select
+          value={draft.category}
+          onChange={(e) => field('category', e.target.value)}
+        >
+          {ITEM_CATEGORIES.map((value) => (
+            <option key={value}>{value}</option>
+          ))}
+        </select>
+      </label>
       <fieldset className="topic-picker">
-        <legend>Teemade sildid / kategooriad</legend>
+        <legend>Täpsemad teemasildid</legend>
         <p className="muted">Vali sobivad eestikeelsed kategooriad.</p>
         <div className="topic-options">
           {[...ACADEMIC_TOPICS]

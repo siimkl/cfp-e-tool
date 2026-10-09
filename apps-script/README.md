@@ -66,3 +66,12 @@ Topic labels are always stored in Estonian. The importer’s structured-output s
 Migration `003_source_statistics.sql` adds a private receipt ledger and a public aggregate-only `source_statistics()` RPC. Each normal inbox run upserts one receipt for every message in its latest-30 window, even if already processed or containing no announcements. This provides cumulative unique-message counts without rereading the historical mailbox. `refreshSourceStatistics()` refreshes the same window without calling OpenAI; run it once in the Apps Script editor to populate the overview immediately, or wait for the next scheduled import.
 
 Classification is conservative and independent of the model: direct sources require List-ID or List-Unsubscribe headers, and no forward/reply headers, subject prefixes or quoted/forwarded-body markers. Unknown mail is excluded, not guessed to be direct. Source identity uses List-ID when present, otherwise the actual sender. Forward detection is heuristic: stripped forwarding markers cannot always be recognised, and some genuine newsletters with quoted correspondence may be excluded. Counts demonstrate observed receipt, not current subscription membership. Public results contain source names/domains, counts and first/last dates only; message IDs and source keys remain private. No body or subject is stored in this ledger.
+
+
+### Kuulutuse keel ja põhikategooria
+
+Importija säilitab iga algkuulutuse keele, sealhulgas eestikeelse pealkirja ja kokkuvõtte. Edasisaatja ingliskeelne saatetekst ei muuda algkuulutuse keelt. Keelemudeli väljund võib siiski eksida.
+
+Igal kuulutusel on üks kohustuslik eestikeelne põhikategooria: ühiskond ja sotsiaalteadused; humanitaaria ja kultuur; haridus ja õppimine; tehnoloogia ja loodusteadused; tervis ja heaolu; valdkondadeülene teadus. Täpsemad `topics` sildid jäävad eraldi. Kategooriat kontrollivad ühine validaator ja andmebaasi CHECK-piirang; kasutajaliideses saab selle järgi filtreerida ja haldur seda parandada.
+
+Enne uuendatud importija ja veebilehe avaldamist rakenda migratsioon `005_item_categories.sql`. Senised kirjed liigitatakse olemasolevate teemasiltide põhjal: enim kattuvaid silte määrab põhikategooria, viigi korral kasutatakse migratsioonis loetletud järjekorda. Vaste puudumisel kasutatakse valdkondadeülest teadust. Juba töödeldud kirju uuesti mudelile ei saadeta.

@@ -3,6 +3,7 @@ export type EventMode = 'IN_PERSON' | 'ONLINE' | 'HYBRID' | 'UNKNOWN';
 export interface ItemInput {
   item_type: ItemType;
   title: string;
+  category: string;
   journal: string | null;
   organiser: string | null;
   summary: string | null;

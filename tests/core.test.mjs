@@ -13,6 +13,7 @@ import {
 } from '../shared/core.js';
 export const example = {
   item_type: 'CFP',
+  category: 'Ühiskond ja sotsiaalteadused',
   title: 'AI and Digital Sovereignty',
   journal: 'Policy Journal',
   organiser: null,

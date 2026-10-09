@@ -176,6 +176,41 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
         ['Journal Beta', 1, 'JOURNAL'],
       ],
     );
+    await db.exec('reset role');
+    await db.exec(
+      "insert into items(item_type,title,topics) values ('CFP','Education category',ARRAY['haridus','kõrgharidus']),('EVENT','Unspecified category',ARRAY[]::text[])",
+    );
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/005_item_categories.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    const categorized = (
+      await db.query(
+        "select title,category from items where title in ('Education category','Unspecified category') order by title",
+      )
+    ).rows;
+    assert.deepEqual(
+      categorized.map((r) => r.category),
+      ['Haridus ja õppimine', 'Valdkondadeülene teadus'],
+    );
+    assert.equal(
+      (
+        await db.query(
+          'select count(*)::int as count from items where category is null',
+        )
+      ).rows[0].count,
+      0,
+    );
+    await assert.rejects(
+      db.exec("update items set category='Education'"),
+      /items_category_estonian/,
+    );
+    await assert.rejects(db.exec('update items set category=null'), /not-null/);
   } finally {
     await db.close();
   }

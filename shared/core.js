@@ -107,6 +107,7 @@ export function mergeFields(existing, incoming) {
     ],
   };
   for (const field of [
+    'category',
     'journal',
     'organiser',
     'summary',
@@ -141,6 +142,8 @@ export function validDate(value) {
   );
 }
 export function validateItem(item) {
+  if (!ITEM_CATEGORIES.includes(item.category))
+    throw new Error('Vali kuulutuse kategooria.');
   if (!['CFP', 'EVENT'].includes(item.item_type))
     throw new Error('Choose CFP or Event.');
   if (typeof item.title !== 'string' || !item.title.trim())
@@ -245,4 +248,14 @@ export const ACADEMIC_TOPICS = [
   'valitsemine',
   'õigusteadus',
   'ühiskond',
+];
+
+// One broad category per announcement; detailed topics remain separate.
+export const ITEM_CATEGORIES = [
+  'Ühiskond ja sotsiaalteadused',
+  'Humanitaaria ja kultuur',
+  'Haridus ja õppimine',
+  'Tehnoloogia ja loodusteadused',
+  'Tervis ja heaolu',
+  'Valdkondadeülene teadus',
 ];

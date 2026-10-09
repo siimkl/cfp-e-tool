@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { SourceStatistics } from './SourceStatistics';
+import { ArchitectureDiagrams } from './ArchitectureDiagrams';
 import { WorkflowDiagram } from './WorkflowDiagram';
 
 export type InfoPageKind = 'sources' | 'architecture' | 'statistics';
@@ -182,6 +183,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             </ol>
           </section>
           <WorkflowDiagram />
+          <ArchitectureDiagrams />
           <section>
             <h2>Millised tehnoloogiad mida teevad?</h2>
             <dl className="technology-list">

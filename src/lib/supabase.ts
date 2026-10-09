@@ -8,4 +8,4 @@ export const configurationReady =
   !/YOUR_/.test(url + key);
 export const supabase = configurationReady ? createClient(url, key) : null;
 export const publicItemColumns =
-  'id,item_type,title,journal,organiser,summary,deadline,event_start,event_end,event_mode,location,homepage_url,topics,archived,created_at,updated_at,source_type';
+  'id,item_type,title,category,journal,organiser,summary,deadline,event_start,event_end,event_mode,location,homepage_url,topics,archived,created_at,updated_at,source_type';

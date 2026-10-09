@@ -78,6 +78,7 @@ export function ItemRow({
         <span>{item.location || '—'}</span>
         {modes[item.event_mode] && <small>{modes[item.event_mode]}</small>}
       </td>
+      <td className="category-cell">{item.category}</td>
       <td className="topics-cell">
         {item.topics.length ? (
           <div className="topics">
