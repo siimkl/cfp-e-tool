@@ -602,7 +602,7 @@ export default function App() {
           />
           <span>ÜTI Teadusradar</span>
         </a>
-        <span>Teadustöö võimalused ühes kohas.</span>
+        <span>CFP-d, konverentsid ja muud teadussündmused ühest kohast.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
           <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
         </nav>
