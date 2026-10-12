@@ -49,13 +49,14 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
                 Sisesta tellimuse e-posti aadressiks <strong>{mailbox}</strong>.
               </li>
               <li>
-                Kui tellimus vajab e-kirjaga kinnitamist, palu postkasti
-                halduril kinnituskiri avada ja tellimus kinnitada. Importija
-                tellimusi ise ei kinnita.
+                Kui tellimus vajab e-kirjaga kinnitamist, kirjuta postkasti
+                haldurile aadressil{' '}
+                <a href="mailto:siim.klais@ut.ee">siim.klais@ut.ee</a> ja palu
+                tal tellimus kinnitada. Süsteem tellimusi ise ei kinnita.
               </li>
             </ol>
             <p>
-              Edaspidi jõuavad selle allika kirjad ühisesse postkasti. Importija
+              Edaspidi jõuavad selle allika kirjad ühisesse postkasti. Süsteem
               otsib neist CFP-sid ja teadussündmusi ning lisab leitud kuulutused
               tabelisse automaatselt.
             </p>
@@ -75,7 +76,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               kuulutusi püütakse ühendada.
             </p>
             <p>
-              Edasta kuulutuse tekst kirja sisus: importija ei loe manuseid.
+              Edasta kuulutuse tekst kirja sisus: süsteem ei loe manuseid.
               Rakendusse sisselogimine ei ole kirja edasisaatmiseks vajalik.
             </p>
             <div
@@ -140,8 +141,8 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               <li>
                 <strong>Google Apps Script</strong>
                 <span>
-                  Ajastatud importija valib kuni 30 viimast saabunud kirja ning
-                  jätab juba töödeldud kirjad vahele.
+                  Automaatne postkasti kontroll valib kuni 30 viimast saabunud
+                  kirja ning jätab juba töödeldud kirjad vahele.
                 </span>
               </li>
               <li>
@@ -154,7 +155,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               <li>
                 <strong>Kontroll ja ühendamine</strong>
                 <span>
-                  Importija kontrollib mudeli vastuse vormingut ja kuupäevi,
+                  Süsteem kontrollib mudeli vastuse vormingut ja kuupäevi,
                   võrdleb leide olemasolevate kuulutustega ning ühendab
                   kordused.
                 </span>
@@ -195,7 +196,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               <div>
                 <dt>Google Apps Script ja Gmail</dt>
                 <dd>
-                  Postkasti lugemine, ajastus ja kogu importimise töövoo
+                  Postkasti lugemine, ajastus ja kirjade läbivaatamise
                   juhtimine.
                 </dd>
               </div>

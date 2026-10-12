@@ -107,10 +107,16 @@ function Arrow({
         strokeDasharray={dashed ? '7 5' : undefined}
         markerEnd={`url(#${id}-arrow)`}
       />
-      <text x={x} y={y} textAnchor="middle" fontSize="13" fill="#334d40"
+      <text
+        x={x}
+        y={y}
+        textAnchor="middle"
+        fontSize="13"
+        fill="#334d40"
         stroke="white"
         strokeWidth="5"
-        paintOrder="stroke">
+        paintOrder="stroke"
+      >
         {label}
       </text>
     </g>
@@ -241,7 +247,7 @@ export function ArchitectureDiagrams() {
           Brauser ei kutsu OpenAI API-t.
         </text>
         <text x="660" y="716" fontSize="15">
-          Import töötab ka suletud veebilehega.
+          Taustatöö jätkub ka suletud veebilehega.
         </text>
         <text x="660" y="742" fontSize="15">
           Katkendjoon: koodi avaldamine.

@@ -271,7 +271,7 @@ export function WorkflowDiagram() {
             aria-labelledby="workflow-title workflow-desc"
           >
             <title id="workflow-title">
-              CFP ja sündmuste importimise protsess koos otsustuskohtadega
+              CFP-de ja sündmuste lisamine kirjadest koos otsustuskohtadega
             </title>
             <desc id="workflow-desc">
               Postkasti kontroll algab umbes kell 04 või 16 või käsitsi. Kui
