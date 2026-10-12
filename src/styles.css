@@ -197,7 +197,7 @@ main {
 }
 .search-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 185px 205px minmax(180px, 1fr) 240px;
   gap: 12px;
   margin-bottom: 15px;
 }
@@ -1081,4 +1081,11 @@ blockquote {
   min-width: 800px;
   color: #203d2e;
   font-family: inherit;
+}
+
+footer {
+  flex-wrap: wrap;
+}
+.webmaster {
+  font-size: 12px;
 }

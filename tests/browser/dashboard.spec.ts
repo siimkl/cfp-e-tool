@@ -133,12 +133,12 @@ async function api(page: Page, staff = false) {
   return requests;
 }
 
-test('public read, search, topics, date filtering and mobile layout', async ({
+test('public read, search, date filtering and mobile layout', async ({
   page,
 }) => {
   const requests = await api(page);
   await page.goto('/');
-  await expect(page).toHaveTitle('ÜTI CFP & Sündmuste jälgija');
+  await expect(page).toHaveTitle('ÜTI Teadusradar');
   await expect(page.locator('html')).toHaveAttribute('lang', 'et');
   await expect(
     page.getByRole('heading', { name: 'Research on Digital Society' }),
@@ -162,10 +162,15 @@ test('public read, search, topics, date filtering and mobile layout', async ({
   await page.getByRole('searchbox').fill('Tallinn');
   await expect(page.locator('tbody tr')).toHaveCount(1);
   await page.getByRole('searchbox').fill('');
-  await page
-    .getByRole('combobox', { name: /^Teema/ })
-    .selectOption('digitaalne ühiskond');
-  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(
+    page.getByRole('combobox', { name: 'Teema', exact: true }),
+  ).toHaveCount(0);
+  await expect(page.getByRole('combobox', { name: 'Järjestus' })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole('option', { name: 'Uued kuulutused' }),
+  ).toHaveCount(0);
   expect(
     requests.some((r) => /item_sources|processed_emails/.test(r.url)),
   ).toBe(false);
@@ -188,7 +193,7 @@ test('public read, search, topics, date filtering and mobile layout', async ({
     fullPage: true,
   });
 });
-test('added-date filter uses Tallinn dates and Monday calendar weeks', async ({
+test('added-date filter uses Tallinn dates and rolling periods', async ({
   page,
 }) => {
   await page.clock.install({ time: new Date('2026-10-08T12:00:00Z') });
@@ -240,12 +245,10 @@ test('added-date filter uses Tallinn dates and Monday calendar weeks', async ({
   await expect(
     page.getByRole('heading', { name: 'Added yesterday', exact: true }),
   ).toBeVisible();
-  await filter.selectOption('week');
-  await expect(page.locator('tbody tr')).toHaveCount(3);
+  await expect(filter.locator('option[value=week]')).toHaveCount(0);
   await filter.selectOption('last7');
   await expect(page.locator('tbody tr')).toHaveCount(4);
-  await filter.selectOption('month');
-  await expect(page.locator('tbody tr')).toHaveCount(5);
+  await expect(filter.locator('option[value=month]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Lähtesta filtrid' }).click();
   await expect(filter).toHaveValue('last7');
   await expect(page.locator('tbody tr')).toHaveCount(4);
@@ -381,7 +384,7 @@ test('table countdown distinguishes today, urgency boundaries, ongoing and past 
       event_end: '2026-10-09',
     }),
     item('past', { title: 'Past CFP', deadline: '2026-10-07' }),
-  ].map(row => ({ ...row, created_at: '2026-10-08T10:00:00Z' }));
+  ].map((row) => ({ ...row, created_at: '2026-10-08T10:00:00Z' }));
   await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
     route.fulfill({ json: rows }),
   );
@@ -411,47 +414,21 @@ test('table countdown distinguishes today, urgency boundaries, ongoing and past 
   await expect(row('Past CFP')).toContainText('Möödunud · 1 päev tagasi');
 });
 
-test('public source statistics show aggregate counts and forwarding guide has a warning', async ({
+test('removed source page falls back to dashboard and footer has webmaster contact', async ({
   page,
 }) => {
-  const requests = await api(page);
-  await page.route(
-    'https://cfp-test.supabase.co/rest/v1/rpc/source_statistics*',
-    (route) =>
-      route.fulfill({
-        json: [
-          {
-            source_name: 'Example Journal',
-            source_domain: 'journal.example.org',
-            source_kind: 'LIST',
-            email_count: 12,
-            first_received_at: '2026-09-01T12:00:00Z',
-            last_received_at: '2026-10-08T12:00:00Z',
-          },
-        ],
-      }),
-  );
-  await page.goto('/');
-  await page
-    .locator('footer')
-    .getByRole('link', { name: 'Jälgitavad allikad' })
-    .click();
+  await api(page);
+  await page.goto('/#/jalgitavad-allikad');
   await expect(
     page.getByRole('heading', { name: 'Jälgitavad allikad', exact: true }),
-  ).toBeVisible();
+  ).toHaveCount(0);
+  await expect(page.locator('tbody tr')).toHaveCount(2);
   await expect(
-    page.getByRole('cell', { name: '12', exact: true }),
-  ).toBeVisible();
+    page.locator('footer').getByRole('link', { name: 'Jälgitavad allikad' }),
+  ).toHaveCount(0);
   await expect(
-    page.getByText('Example Journal', { exact: true }),
-  ).toBeVisible();
-  expect(
-    requests.some((r) => /source_receipts|processed_emails/.test(r.url)),
-  ).toBe(false);
-  await page.reload();
-  await expect(
-    page.getByText('Example Journal', { exact: true }),
-  ).toBeVisible();
+    page.locator('footer').getByRole('link', { name: 'siim.klais@ut.ee' }),
+  ).toHaveAttribute('href', 'mailto:siim.klais@ut.ee');
   await page
     .locator('header')
     .getByRole('link', { name: /Lisa uus allikas/ })

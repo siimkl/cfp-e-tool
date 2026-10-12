@@ -1,9 +1,8 @@
 import { useEffect, useRef } from 'react';
-import { SourceStatistics } from './SourceStatistics';
 import { ArchitectureDiagrams } from './ArchitectureDiagrams';
 import { WorkflowDiagram } from './WorkflowDiagram';
 
-export type InfoPageKind = 'sources' | 'architecture' | 'statistics';
+export type InfoPageKind = 'sources' | 'architecture';
 const mailbox = 'callsevents208@gmail.com';
 
 export function InfoPage({ kind }: { kind: InfoPageKind }) {
@@ -11,9 +10,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
   const title =
     kind === 'sources'
       ? 'Lisa uus allikas, mida jälgida'
-      : kind === 'statistics'
-        ? 'Jälgitavad allikad'
-        : 'CFP rakenduse arhitektuur';
+      : 'CFP rakenduse arhitektuur';
   useEffect(() => {
     document.title = `${title} · ÜTI Teadusradar`;
     heading.current?.focus();
@@ -30,9 +27,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       <h1 ref={heading} tabIndex={-1}>
         {title}
       </h1>
-      {kind === 'statistics' ? (
-        <SourceStatistics />
-      ) : kind === 'sources' ? (
+      {kind === 'sources' ? (
         <>
           <p className="info-lead">
             Aita tuua Call for Papers (CFP) ja teadussündmuste teated ühte
@@ -129,9 +124,9 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       ) : (
         <>
           <p className="info-lead">
-            ÜTI Teadusradar koondab e-kirjades avaldatud Call
-            for Papers (CFP) ja teadussündmused otsitavasse tabelisse. Veebileht
-            kuvab andmeid; kirjade lugemine ja mudeli töö käivad taustal.
+            ÜTI Teadusradar koondab e-kirjades avaldatud Call for Papers (CFP)
+            ja teadussündmused otsitavasse tabelisse. Veebileht kuvab andmeid;
+            kirjade lugemine ja mudeli töö käivad taustal.
           </p>
           <section>
             <h2>Teekond kirjast kuulutuseni</h2>

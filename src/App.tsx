@@ -14,7 +14,6 @@ import {
   supabase,
 } from './lib/supabase';
 import {
-  isNew,
   isPast,
   primaryDate,
   todayInTallinn,
@@ -52,9 +51,7 @@ export default function App() {
       ? 'sources'
       : window.location.hash === '#/arhitektuur'
         ? 'architecture'
-        : window.location.hash === '#/jalgitavad-allikad'
-          ? 'statistics'
-          : null;
+        : null;
   const [infoPage, setInfoPage] = useState(getInfoPage);
   useEffect(() => {
     const navigate = () => {
@@ -73,9 +70,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('All');
   const [period, setPeriod] = useState('current');
   const [query, setQuery] = useState('');
-  const [topic, setTopic] = useState('');
   const [category, setCategory] = useState('');
-  const [sort, setSort] = useState('date');
   const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('last7');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
@@ -180,15 +175,6 @@ export default function App() {
     () => items.filter((item) => !item.archived && !isPast(item, today)),
     [items, today],
   );
-  const topics = useMemo(
-    () =>
-      [
-        ...new Set(
-          items.filter((item) => !item.archived).flatMap((item) => item.topics),
-        ),
-      ].sort(),
-    [items],
-  );
   const visible = useMemo(
     () =>
       items
@@ -207,9 +193,7 @@ export default function App() {
           }
           if (tab === 'CFPs' && item.item_type !== 'CFP') return false;
           if (tab === 'Events' && item.item_type !== 'EVENT') return false;
-          if (period === 'new' && !isNew(item)) return false;
           if (category && item.category !== category) return false;
-          if (topic && !item.topics.includes(topic)) return false;
           if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
             return false;
           return [
@@ -225,25 +209,13 @@ export default function App() {
             .toLowerCase()
             .includes(query.trim().toLowerCase());
         })
-        .sort((a, b) =>
-          sort === 'newest'
-            ? b.created_at.localeCompare(a.created_at)
-            : (primaryDate(a) || '9999').localeCompare(
-                primaryDate(b) || '9999',
-              ) || a.title.localeCompare(b.title),
+        .sort(
+          (a, b) =>
+            (primaryDate(a) || '9999').localeCompare(
+              primaryDate(b) || '9999',
+            ) || a.title.localeCompare(b.title),
         ),
-    [
-      items,
-      tab,
-      admin,
-      topic,
-      category,
-      query,
-      sort,
-      today,
-      addedPeriod,
-      period,
-    ],
+    [items, tab, admin, category, query, today, addedPeriod, period],
   );
   async function save(data: ItemInput) {
     if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
@@ -436,7 +408,6 @@ export default function App() {
                     onChange={(event) => setPeriod(event.target.value)}
                   >
                     <option value="current">Aktiivsed kuulutused</option>
-                    <option value="new">Uued kuulutused</option>
                     <option value="past">Möödunud kuulutused</option>
                     <option value="all">Kõik kuupäevad</option>
                   </select>
@@ -452,9 +423,7 @@ export default function App() {
                     <option value="all">Kõik lisamisajad</option>
                     <option value="today">Täna lisatud</option>
                     <option value="yesterday">Eile lisatud</option>
-                    <option value="week">Sel nädalal lisatud</option>
                     <option value="last7">Viimase 7 päeva jooksul</option>
-                    <option value="month">Sel kuul lisatud</option>
                     <option value="last30">Viimase 30 päeva jooksul</option>
                   </select>
                 </label>
@@ -478,28 +447,6 @@ export default function App() {
                     {ITEM_CATEGORIES.map((value) => (
                       <option key={value}>{value}</option>
                     ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="sr-only">Teema</span>
-                  <select
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
-                  >
-                    <option value="">Kõik teemad</option>
-                    {topics.map((t) => (
-                      <option key={t}>{t}</option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span className="sr-only">Järjestus</span>
-                  <select
-                    value={sort}
-                    onChange={(e) => setSort(e.target.value)}
-                  >
-                    <option value="date">Lähim kuupäev</option>
-                    <option value="newest">Viimati lisatud</option>
                   </select>
                 </label>
               </div>
@@ -552,11 +499,9 @@ export default function App() {
                       onClick={() => {
                         setQuery('');
                         setAddedPeriod('last7');
-                        setTopic('');
                         setCategory('');
                         setTab('All');
                         setPeriod('current');
-                        setSort('date');
                       }}
                     >
                       Lähtesta filtrid
@@ -630,7 +575,7 @@ export default function App() {
                         </span>
                         <h3>Kuulutusi ei leitud</h3>
                         <p>
-                          {query || topic || category || addedPeriod !== 'all'
+                          {query || category || addedPeriod !== 'all'
                             ? 'Proovi teist otsingut või lähtesta filtrid.'
                             : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
                         </p>
@@ -658,8 +603,11 @@ export default function App() {
           <span>ÜTI Teadusradar</span>
         </a>
         <span>Teadustöö võimalused ühes kohas.</span>
+        <span className="webmaster">
+          Veebihaldur: Siim Klais ·{' '}
+          <a href="mailto:siim.klais@ut.ee">siim.klais@ut.ee</a>
+        </span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
-          <a href="#/jalgitavad-allikad">Jälgitavad allikad</a>
           <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
         </nav>
       </footer>
