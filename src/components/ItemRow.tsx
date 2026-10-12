@@ -1,5 +1,5 @@
 import type { Item } from '../types';
-import { dateRange, dateStatus, displayDate, isNew } from '../lib/dates';
+import { dateRange, dateStatus, displayDate } from '../lib/dates';
 import { normaliseUrl } from '../lib/dedupe';
 
 const modes = {
@@ -60,7 +60,6 @@ export function ItemRow({
           </svg>
           <span>{item.item_type === 'CFP' ? 'CFP' : 'Sündmus'}</span>
         </span>
-        {isNew(item) && <span className="new-badge">Uus</span>}
         {item.archived && <span className="archived-badge">Arhiveeritud</span>}
       </td>
       <td className="announcement-cell">
