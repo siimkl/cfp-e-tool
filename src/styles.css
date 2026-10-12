@@ -88,17 +88,22 @@ textarea:focus-visible {
   text-decoration: none;
 }
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
+  flex-shrink: 0;
   width: 46px;
   height: 46px;
-  background: #1e463c;
-  color: #fff;
-  border-radius: 5px;
-  font-size: 20px;
-  font-family: Georgia, serif;
-  letter-spacing: -2px;
 }
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #193c32;
+  font-weight: 700;
+}
+.footer-brand img {
+  flex-shrink: 0;
+}
+
 .brand small {
   display: block;
   font-size: 12px;
@@ -684,7 +689,8 @@ blockquote {
     max-width: 160px;
   }
   .brand-mark {
-    display: none;
+    width: 34px;
+    height: 34px;
   }
   .metric {
     padding: 12px 9px;

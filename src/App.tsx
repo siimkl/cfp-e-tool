@@ -347,9 +347,13 @@ export default function App() {
       <header className="site-header">
         <div className="header-inner">
           <a className="brand" href="./">
-            <span className="brand-mark" aria-hidden="true">
-              CF
-            </span>
+            <img
+              className="brand-mark"
+              src={`${import.meta.env.BASE_URL}teadusradar.svg`}
+              alt=""
+              width="46"
+              height="46"
+            />
             <span>
               ÜTI Teadusradar
               <small>
@@ -644,7 +648,15 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span>ÜTI Teadusradar</span>
+        <a className="footer-brand" href="./">
+          <img
+            src={`${import.meta.env.BASE_URL}teadusradar.svg`}
+            alt=""
+            width="30"
+            height="30"
+          />
+          <span>ÜTI Teadusradar</span>
+        </a>
         <span>Teadustöö võimalused ühes kohas.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
           <a href="#/jalgitavad-allikad">Jälgitavad allikad</a>
