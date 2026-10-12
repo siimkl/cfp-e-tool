@@ -401,7 +401,15 @@ test('table countdown distinguishes today, urgency boundaries, ongoing and past 
   await expect(row('Later CFP')).toHaveClass(/date-later/);
   await expect(row('Unknown CFP')).toHaveClass(/date-unknown/);
   await expect(row('Ongoing event')).toContainText('Käimas · lõpuni 1 päev');
-  await row('Seven days CFP').getByText('Kokkuvõte', { exact: true }).click();
+  await expect(
+    page.getByRole('columnheader', { name: 'Kokkuvõte', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('columnheader', { name: 'Teemad', exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    row('Seven days CFP').locator('.announcement-cell'),
+  ).not.toContainText('A call for research');
   await expect(
     row('Seven days CFP').getByText(
       'A call for research on institutions and technology.',

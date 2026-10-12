@@ -816,7 +816,7 @@ blockquote {
   width: 210px;
 }
 .announcements-table th:nth-child(4) {
-  width: 15%;
+  width: 12%;
 }
 .announcements-table th:nth-child(7) {
   width: 155px;
@@ -850,18 +850,10 @@ blockquote {
   font-weight: 650;
   margin: 0;
 }
-.row-summary {
-  margin-top: 5px;
-  color: #566b5e;
-  font-size: 12px;
-}
-.row-summary summary {
-  cursor: pointer;
-  width: fit-content;
-}
-.row-summary p {
-  margin: 7px 0 0;
+.summary-cell {
+  color: #465c50;
   line-height: 1.6;
+  white-space: pre-line;
 }
 .date-cell > strong,
 .date-label,
@@ -1058,7 +1050,7 @@ blockquote {
 }
 
 .announcements-table th:nth-child(2) {
-  width: 30%;
+  width: 25%;
 }
 .announcements-table th:nth-child(5) {
   width: 155px;

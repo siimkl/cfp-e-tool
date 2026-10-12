@@ -540,7 +540,7 @@ export default function App() {
                               <th scope="col">Kuupäev / järelejäänud aeg</th>
                               <th scope="col">Toimumiskoht</th>
                               <th scope="col">Kategooria</th>
-                              <th scope="col">Teemad</th>
+                              <th scope="col">Kokkuvõte</th>
                               {admin && <th scope="col">Haldus</th>}
                             </tr>
                           </thead>

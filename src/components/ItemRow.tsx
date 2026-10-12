@@ -55,12 +55,6 @@ export function ItemRow({
             {[item.journal, item.organiser].filter(Boolean).join(' · ')}
           </p>
         )}
-        {item.summary && (
-          <details className="row-summary">
-            <summary>Kokkuvõte</summary>
-            <p>{item.summary}</p>
-          </details>
-        )}
         {!url && <span className="muted">Kuulutuse link puudub</span>}
       </td>
       <td className="date-cell">
@@ -79,16 +73,8 @@ export function ItemRow({
         {modes[item.event_mode] && <small>{modes[item.event_mode]}</small>}
       </td>
       <td className="category-cell">{item.category}</td>
-      <td className="topics-cell">
-        {item.topics.length ? (
-          <div className="topics">
-            {item.topics.map((topic) => (
-              <span key={topic}>{topic}</span>
-            ))}
-          </div>
-        ) : (
-          <span className="muted">—</span>
-        )}
+      <td className="summary-cell">
+        {item.summary || <span className="muted">—</span>}
       </td>
       {admin && (
         <td>
