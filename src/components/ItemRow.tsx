@@ -35,7 +35,30 @@ export function ItemRow({
           className={'type-badge ' + item.item_type.toLowerCase()}
           title={item.item_type === 'CFP' ? 'Call for Papers' : undefined}
         >
-          {item.item_type === 'CFP' ? 'CFP' : 'Sündmus'}
+          <svg
+            className="type-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            {item.item_type === 'CFP' ? (
+              <>
+                <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z" />
+                <path d="M14 3v5h5M8 12h8M8 16h5" />
+              </>
+            ) : (
+              <>
+                <rect x="3" y="5" width="18" height="16" rx="2" />
+                <path d="M7 3v4M17 3v4M3 10h18M8 14h2M14 14h2M8 17h2" />
+              </>
+            )}
+          </svg>
+          <span>{item.item_type === 'CFP' ? 'CFP' : 'Sündmus'}</span>
         </span>
         {isNew(item) && <span className="new-badge">Uus</span>}
         {item.archived && <span className="archived-badge">Arhiveeritud</span>}

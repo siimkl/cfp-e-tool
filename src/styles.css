@@ -257,12 +257,12 @@ input::placeholder {
   border-radius: 3px;
 }
 .type-badge.cfp {
-  background: #edf2e8;
-  color: #4d653c;
+  background: #244c3f;
+  color: #fff;
 }
 .type-badge.event {
-  background: #eaf0f5;
-  color: #46667c;
+  background: #294d79;
+  color: #fff;
 }
 .new-badge {
   color: #66864b;
@@ -807,7 +807,7 @@ blockquote {
   font-weight: 650;
 }
 .announcements-table th:nth-child(1) {
-  width: 90px;
+  width: 132px;
 }
 .announcements-table th:nth-child(2) {
   width: 38%;
@@ -843,6 +843,22 @@ blockquote {
   display: table;
   margin-bottom: 5px;
   font-size: 10px;
+}
+.kind-cell > .type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.type-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 .announcement-cell h2 {
   font-size: 14px;
