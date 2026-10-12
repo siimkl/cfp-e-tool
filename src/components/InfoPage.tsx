@@ -15,11 +15,11 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
         ? 'Jälgitavad allikad'
         : 'CFP rakenduse arhitektuur';
   useEffect(() => {
-    document.title = `${title} · ÜTI CFP & Sündmuste jälgija`;
+    document.title = `${title} · ÜTI Teadusradar`;
     heading.current?.focus();
     window.scrollTo(0, 0);
     return () => {
-      document.title = 'ÜTI CFP & Sündmuste jälgija';
+      document.title = 'ÜTI Teadusradar';
     };
   }, [title]);
   return (
@@ -129,7 +129,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
       ) : (
         <>
           <p className="info-lead">
-            ÜTI CFP &amp; Sündmuste jälgija koondab e-kirjades avaldatud Call
+            ÜTI Teadusradar koondab e-kirjades avaldatud Call
             for Papers (CFP) ja teadussündmused otsitavasse tabelisse. Veebileht
             kuvab andmeid; kirjade lugemine ja mudeli töö käivad taustal.
           </p>

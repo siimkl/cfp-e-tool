@@ -351,9 +351,9 @@ export default function App() {
               CF
             </span>
             <span>
-              ÜTI CFP &amp; Sündmuste jälgija
+              ÜTI Teadusradar
               <small>
-                Call for Papers ja teadussündmused otse korraldajatelt
+                CFP-d, konverentsid ja muud teadussündmused ühest kohast.
               </small>
             </span>
           </a>
@@ -644,7 +644,7 @@ export default function App() {
         )}
       </main>
       <footer>
-        <span>ÜTI CFP &amp; Sündmuste jälgija</span>
+        <span>ÜTI Teadusradar</span>
         <span>Teadustöö võimalused ühes kohas.</span>
         <nav className="footer-links" aria-label="Rakenduse juhendid">
           <a href="#/jalgitavad-allikad">Jälgitavad allikad</a>
