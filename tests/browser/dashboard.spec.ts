@@ -434,7 +434,7 @@ test('removed source page falls back to dashboard and footer has webmaster conta
     .getByRole('link', { name: /Lisa uus allikas/ })
     .click();
   await expect(page.getByRole('note')).toContainText(
-    'Ära saada edasi arutelulõime ega konfidentsiaalset infot.',
+    'mitte isiklikku ega asutusesisest kirjavahetust.',
   );
   await expect(page.getByRole('note')).toContainText('OpenAI');
 });

@@ -62,28 +62,6 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
           </section>
           <section>
             <h2>2. Saada oma postkastist kiri edasi</h2>
-            <div
-              className="forward-warning"
-              role="note"
-              aria-label="Hoiatus konfidentsiaalse info kohta"
-            >
-              <strong>
-                Ära saada edasi arutelulõime ega konfidentsiaalset infot.
-              </strong>
-              <p>
-                Kui oled kirja üle kellegagi arutanud, ära edasta kogu
-                kirjavahetust. Eemalda varasemad vastused, isiklikud
-                kommentaarid, kontaktandmed ja muu mitteavalik info. Saada
-                ainult avaldamiseks mõeldud algne kuulutus või selle tekst koos
-                lingiga.
-              </p>
-              <p>
-                Kirja sisu töötleb väline keelemudel (OpenAI). Automaatne
-                töötlus ja teksti eraldamine võivad eksida; konfidentsiaalsuse
-                täielikku kaitset ei saa eeldada. Ära edasta tundlikku teavet ka
-                siis, kui arvad, et mudel peaks seda ignoreerima.
-              </p>
-            </div>
             <p>
               Kui saad huvitava CFP, konverentsi, seminari või töötoa teate,
               vali oma postkastis <strong>„Saada edasi”</strong> ja määra
@@ -100,6 +78,27 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               Edasta kuulutuse tekst kirja sisus: importija ei loe manuseid.
               Rakendusse sisselogimine ei ole kirja edasisaatmiseks vajalik.
             </p>
+            <div
+              className="forward-warning"
+              role="note"
+              aria-label="Hoiatus konfidentsiaalse info kohta"
+            >
+              <p>
+                <strong>
+                  NB! Palun saatke edasi ainult avalikke uudiskirju ning
+                  sündmuste ja CFP-de kutseid, mitte isiklikku ega asutusesisest
+                  kirjavahetust.
+                </strong>
+              </p>
+              <p>
+                Süsteemis on mõned kaitsemehhanismid juhuks, kui selline info
+                kogemata kaasa tuleb, kuid nullriski lubada ei saa. Kirja sisu
+                töötleb väline keelemudel (OpenAI). Automaatne töötlus ja teksti
+                eraldamine võivad eksida ning konfidentsiaalsuse täielikku
+                kaitset ei saa eeldada. Ärge edastage tundlikku teavet ka siis,
+                kui arvate, et mudel peaks seda ignoreerima.
+              </p>
+            </div>
           </section>
           <section className="info-note">
             <h2>Millal kuulutus tabelisse jõuab?</h2>
