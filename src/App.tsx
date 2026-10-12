@@ -603,13 +603,13 @@ export default function App() {
           <span>ÜTI Teadusradar</span>
         </a>
         <span>Teadustöö võimalused ühes kohas.</span>
+        <nav className="footer-links" aria-label="Rakenduse juhendid">
+          <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
+        </nav>
         <span className="webmaster">
           Veebihaldur: Siim Klais ·{' '}
           <a href="mailto:siim.klais@ut.ee">siim.klais@ut.ee</a>
         </span>
-        <nav className="footer-links" aria-label="Rakenduse juhendid">
-          <a href="#/arhitektuur">CFP rakenduse arhitektuur</a>
-        </nav>
       </footer>
       {dialog?.kind === 'login' && (
         <Modal title="Halduri sisselogimine" onClose={() => setDialog(null)}>

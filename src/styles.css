@@ -517,9 +517,7 @@ footer span:first-child {
   font-weight: 650;
   color: #5a705c;
 }
-footer span:last-child {
-  margin-left: auto;
-}
+
 .notice,
 .error {
   padding: 13px 15px;
@@ -678,10 +676,6 @@ blockquote {
     padding-right: 0;
     flex-wrap: wrap;
     gap: 10px;
-  }
-  footer span:last-child {
-    margin-left: 0;
-    width: 100%;
   }
 }
 @media (max-width: 400px) {
@@ -1084,8 +1078,21 @@ blockquote {
 }
 
 footer {
-  flex-wrap: wrap;
+  align-items: center;
+}
+footer > * {
+  flex-shrink: 0;
 }
 .webmaster {
+  margin-left: auto;
   font-size: 12px;
+  text-align: right;
+}
+@media (max-width: 700px) {
+  footer > * {
+    flex-shrink: 1;
+  }
+  .webmaster {
+    flex-basis: 100%;
+  }
 }
