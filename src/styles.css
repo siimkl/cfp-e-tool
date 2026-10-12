@@ -830,8 +830,14 @@ blockquote {
 .item-row:hover {
   background: #f8faf7;
 }
-.kind-cell {
-  border-left: 3px solid var(--date-color);
+/* A full-height rail plus a tinted cell keeps urgency visible when scanning. */
+.announcements-table .kind-cell {
+  box-shadow: inset 8px 0 0 var(--date-color);
+  background: var(--date-bg);
+  padding-left: 19px;
+}
+.item-row:hover .kind-cell {
+  box-shadow: inset 10px 0 0 var(--date-color);
 }
 .kind-cell > span {
   display: table;
@@ -934,9 +940,9 @@ blockquote {
 }
 .date-legend span::before {
   content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 6px;
+  height: 16px;
+  border-radius: 2px;
   background: var(--date-color);
 }
 @media (max-width: 760px) {
