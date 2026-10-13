@@ -429,8 +429,8 @@ export default function App() {
                     <option value="all">Kõik lisamisajad</option>
                     <option value="today">Täna lisatud</option>
                     <option value="yesterday">Eile lisatud</option>
-                    <option value="last7">Viimase 7 päeva jooksul</option>
-                    <option value="last30">Viimase 30 päeva jooksul</option>
+                    <option value="last7">Lisatud 7 päeva jooksul</option>
+                    <option value="last30">Lisatud 30 päeva jooksul</option>
                   </select>
                 </label>
                 <label className="search-field">

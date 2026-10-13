@@ -76,20 +76,7 @@ export function ItemRow({
         {item.archived && <span className="archived-badge">Arhiveeritud</span>}
       </td>
       <td className="announcement-cell">
-        <h2>
-          {url ? (
-            <a
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Ava algallikas uues vahekaardis"
-            >
-              {item.title} <span aria-hidden="true">↗</span>
-            </a>
-          ) : (
-            item.title
-          )}
-        </h2>
+        <h2>{item.title}</h2>
         {(item.journal || item.organiser) && (
           <p className="publisher">
             {[item.journal, item.organiser].filter(Boolean).join(' · ')}

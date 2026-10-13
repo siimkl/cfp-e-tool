@@ -1197,17 +1197,6 @@ footer > * {
   }
 }
 
-.announcement-cell h2 a {
-  color: #215b68;
-  text-decoration: underline;
-  text-decoration-color: #9fbcc0;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 1px;
-}
-.announcement-cell h2 a:hover {
-  color: #153f49;
-  text-decoration-color: currentColor;
-}
 .source-action {
   margin-top: 10px;
 }
