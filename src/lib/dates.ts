@@ -48,6 +48,8 @@ export function dateRange(start: string | null, end: string | null): string {
 }
 
 export function dateStatus(item: Item, today: string) {
+  if (item.item_type === 'INITIATIVE')
+    return { tone: 'unknown', label: 'Kuupäevata algatus' };
   const start = item.item_type === 'CFP' ? item.deadline : item.event_start;
   const end =
     item.item_type === 'CFP' ? item.deadline : item.event_end || start;

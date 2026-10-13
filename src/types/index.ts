@@ -1,4 +1,4 @@
-export type ItemType = 'CFP' | 'EVENT';
+export type ItemType = 'CFP' | 'EVENT' | 'INITIATIVE';
 export type EventMode = 'IN_PERSON' | 'ONLINE' | 'HYBRID' | 'UNKNOWN';
 export interface ItemInput {
   item_type: ItemType;

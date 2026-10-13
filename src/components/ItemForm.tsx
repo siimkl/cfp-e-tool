@@ -84,6 +84,7 @@ export function ItemForm({
         >
           <option value="CFP">Call for Papers (CFP)</option>
           <option value="EVENT">Sündmus</option>
+          <option value="INITIATIVE">Algatus</option>
         </select>
       </label>
       <label>
@@ -120,7 +121,7 @@ export function ItemForm({
           onChange={(e) => field('summary', e.target.value)}
         />
       </label>
-      {draft.item_type === 'CFP' ? (
+      {draft.item_type === 'INITIATIVE' ? null : draft.item_type === 'CFP' ? (
         <label>
           Tähtaeg
           <input

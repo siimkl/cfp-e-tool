@@ -75,3 +75,8 @@ Importija säilitab iga algkuulutuse keele, sealhulgas eestikeelse pealkirja ja 
 Igal kuulutusel on üks kohustuslik eestikeelne põhikategooria: ühiskond ja sotsiaalteadused; humanitaaria ja kultuur; haridus ja õppimine; tehnoloogia ja loodusteadused; tervis ja heaolu; valdkondadeülene teadus. Täpsemad `topics` sildid jäävad eraldi. Kategooriat kontrollivad ühine validaator ja andmebaasi CHECK-piirang; kasutajaliideses saab selle järgi filtreerida ja haldur seda parandada.
 
 Enne uuendatud importija ja veebilehe avaldamist rakenda migratsioon `005_item_categories.sql`. Senised kirjed liigitatakse olemasolevate teemasiltide põhjal: enim kattuvaid silte määrab põhikategooria, viigi korral kasutatakse migratsioonis loetletud järjekorda. Vaste puudumisel kasutatakse valdkondadeülest teadust. Juba töödeldud kirju uuesti mudelile ei saadeta.
+
+
+### Algatused
+
+`INITIATIVE` tähistab konkreetset teadusalgatust, näiteks labori, uurimisvõrgustiku, projekti või teadusressursi tutvustust. Algatusel puuduvad sündmuse kuupäevad ja CFP tähtaeg. Automaatne tuvastamine, kategooriad, korduste ühendamine ja halduri muudatused toimivad ka algatuste puhul. Enne koodi avaldamist rakenda `006_initiatives.sql`; see lisab kasutaja esitatud DigiLabouri teate esimese käsitsi lisatud algatusena. Varasemaid töödeldud kirju uuesti ei analüüsita.

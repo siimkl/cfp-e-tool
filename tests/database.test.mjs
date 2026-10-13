@@ -211,6 +211,23 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
       /items_category_estonian/,
     );
     await assert.rejects(db.exec('update items set category=null'), /not-null/);
+    await db.exec(
+      readFileSync(
+        new URL('../supabase/migrations/006_initiatives.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    const initiative = (
+      await db.query("select * from items where item_type='INITIATIVE'")
+    ).rows;
+    assert.equal(initiative.length, 1);
+    assert.match(initiative[0].title, /DigiLabour/);
+    await assert.rejects(
+      db.exec(
+        "update items set deadline='2027-01-01' where item_type='INITIATIVE'",
+      ),
+      /dates_match_type/,
+    );
   } finally {
     await db.close();
   }

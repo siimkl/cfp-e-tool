@@ -32,11 +32,12 @@ import {
   translateFieldValidation,
 } from './lib/messages';
 
-type Tab = 'All' | 'CFPs' | 'Events' | 'Archived';
+type Tab = 'All' | 'CFPs' | 'Events' | 'Initiatives' | 'Archived';
 const tabLabels: Record<Tab, string> = {
   All: 'Kõik',
   CFPs: 'Call for Papers (CFP)',
   Events: 'Sündmused',
+  Initiatives: 'Algatused',
   Archived: 'Arhiveeritud',
 };
 type Dialog =
@@ -193,6 +194,8 @@ export default function App() {
           }
           if (tab === 'CFPs' && item.item_type !== 'CFP') return false;
           if (tab === 'Events' && item.item_type !== 'EVENT') return false;
+          if (tab === 'Initiatives' && item.item_type !== 'INITIATIVE')
+            return false;
           if (category && item.category !== category) return false;
           if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
             return false;
@@ -352,25 +355,6 @@ export default function App() {
           <InfoPage kind={infoPage} />
         ) : (
           <>
-            <section className="metrics" aria-label="Kuulutuste statistika">
-              {[
-                [
-                  'Avatud CFP-d',
-                  current.filter((i) => i.item_type === 'CFP').length,
-                ],
-                [
-                  'Tulevased sündmused',
-                  current.filter((i) => i.item_type === 'EVENT').length,
-                ],
-              ].map(([label, count]) => (
-                <div className="metric" key={label}>
-                  <span>{label}</span>
-                  <strong>
-                    {configurationReady && authReady && !loading ? count : '—'}
-                  </strong>
-                </div>
-              ))}
-            </section>
             <section className="directory" aria-label="Kuulutused">
               {admin && (
                 <div className="directory-heading">
@@ -388,6 +372,7 @@ export default function App() {
                     'All',
                     'CFPs',
                     'Events',
+                    'Initiatives',
                     ...(admin ? ['Archived'] : []),
                   ] as Tab[]
                 ).map((value) => (
@@ -396,7 +381,28 @@ export default function App() {
                     aria-pressed={tab === value}
                     onClick={() => setTab(value)}
                   >
-                    {tabLabels[value]}
+                    {tabLabels[value]}{' '}
+                    <span className="tab-count">
+                      (
+                      {!configurationReady || !authReady || loading
+                        ? '—'
+                        : value === 'Archived'
+                          ? items.filter((i) => i.archived).length
+                          : value === 'All'
+                            ? current.length
+                            : current.filter(
+                                (i) =>
+                                  i.item_type ===
+                                  (
+                                    {
+                                      CFPs: 'CFP',
+                                      Events: 'EVENT',
+                                      Initiatives: 'INITIATIVE',
+                                    } as Record<string, string>
+                                  )[value],
+                              ).length}
+                      )
+                    </span>
                   </button>
                 ))}
               </div>

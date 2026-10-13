@@ -46,7 +46,14 @@ export function ItemRow({
             aria-hidden="true"
             focusable="false"
           >
-            {item.item_type === 'CFP' ? (
+            {item.item_type === 'INITIATIVE' ? (
+              <>
+                <circle cx="12" cy="6" r="3" />
+                <circle cx="5" cy="18" r="3" />
+                <circle cx="19" cy="18" r="3" />
+                <path d="m10 9-4 6m8-6 4 6M8 18h8" />
+              </>
+            ) : item.item_type === 'CFP' ? (
               <>
                 <path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8Z" />
                 <path d="M14 3v5h5M8 12h8M8 16h5" />
@@ -58,7 +65,13 @@ export function ItemRow({
               </>
             )}
           </svg>
-          <span>{item.item_type === 'CFP' ? 'CFP' : 'Sündmus'}</span>
+          <span>
+            {item.item_type === 'CFP'
+              ? 'CFP'
+              : item.item_type === 'INITIATIVE'
+                ? 'Algatus'
+                : 'Sündmus'}
+          </span>
         </span>
         {item.archived && <span className="archived-badge">Arhiveeritud</span>}
       </td>
@@ -81,12 +94,18 @@ export function ItemRow({
       </td>
       <td className="date-cell">
         <span className="date-label">
-          {item.item_type === 'CFP' ? 'Tähtaeg' : 'Toimumisaeg'}
+          {item.item_type === 'CFP'
+            ? 'Tähtaeg'
+            : item.item_type === 'INITIATIVE'
+              ? 'Algatus'
+              : 'Toimumisaeg'}
         </span>
         <strong>
-          {item.item_type === 'CFP'
-            ? displayDate(item.deadline)
-            : dateRange(item.event_start, item.event_end)}
+          {item.item_type === 'INITIATIVE'
+            ? '—'
+            : item.item_type === 'CFP'
+              ? displayDate(item.deadline)
+              : dateRange(item.event_start, item.event_end)}
         </strong>
         <span className={`date-status ${status.tone}`}>{status.label}</span>
       </td>

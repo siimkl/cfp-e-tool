@@ -104,7 +104,7 @@ const nodes: Node[] = [
     y: 1015,
     lines: [
       'Lase keelemudelil kiri läbi vaadata',
-      'Leia CFP-d, sündmused ja nende andmed',
+      'Leia CFP-d, sündmused ja algatused',
     ],
   },
   {
@@ -160,7 +160,7 @@ const nodes: Node[] = [
     id: 'insert',
     x: 380,
     y: 1615,
-    lines: ['Lisa uus kuulutus', 'Igale CFP-le ja sündmusele oma tabelirida'],
+    lines: ['Lisa uus kuulutus', 'Iga kuulutus saab oma tabelirea'],
   },
   {
     id: 'save',

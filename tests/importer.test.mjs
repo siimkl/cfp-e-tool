@@ -620,3 +620,23 @@ test('Estonian extraction stays Estonian through storage, with a required broad 
   assert.equal(c.processMessage(message('invalid-category')), 'ERROR');
   assert.equal(db.items.length, 1);
 });
+
+test('research initiative is extracted and repeated announcements are merged', () => {
+  const { context: c, state, db } = harness();
+  const initiative = {
+    ...sample,
+    item_type: 'INITIATIVE',
+    title: 'DigiLabour: new research lab website',
+    deadline: null,
+    homepage_url: 'https://example.org/call',
+  };
+  state.extractions.push([initiative], [initiative]);
+  assert.equal(c.processMessage(message('initiative1')), 'SUCCESS');
+  assert.equal(c.processMessage(message('initiative2')), 'SUCCESS');
+  assert.equal(db.items.length, 1);
+  assert.equal(db.items[0].item_type, 'INITIATIVE');
+  assert.equal(db.items[0].deadline, null);
+  assert.equal(db.item_sources.length, 2);
+  state.extractions.push([{ ...initiative, event_start: '2027-01-01' }]);
+  assert.equal(c.processMessage(message('initiative-invalid')), 'ERROR');
+});

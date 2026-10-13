@@ -266,7 +266,7 @@ export function ArchitectureDiagrams() {
           title="items · kuulutused"
           lines={[
             'PK id',
-            'item_type · CFP / EVENT',
+            'item_type · CFP / EVENT / INITIATIVE',
             'title, journal, organiser, summary',
             'category · üks kuuest kategooriast',
             'topics[] · täpsemad teemasildid',

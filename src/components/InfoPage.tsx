@@ -20,7 +20,9 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
     };
   }, [title]);
   return (
-    <article className="info-page">
+    <article
+      className={`info-page ${kind === 'sources' ? 'source-guide' : ''}`}
+    >
       <a className="back-link" href="#/">
         ← Tagasi kuulutuste juurde
       </a>
@@ -39,7 +41,10 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             <a href={`mailto:${mailbox}`}>{mailbox}</a>
           </div>
           <section>
-            <h2>1. Lisa uus meililist või uudiskiri</h2>
+            <h2>
+              <span className="guide-number">1</span> Lisa uus meililist või
+              uudiskiri
+            </h2>
             <ol>
               <li>
                 Ava ajakirja, ülikooli või uurimisrühma veebileht ning leia
@@ -57,12 +62,15 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             </ol>
             <p>
               Edaspidi jõuavad selle allika kirjad ühisesse postkasti. Süsteem
-              otsib neist CFP-sid ja teadussündmusi ning lisab leitud kuulutused
-              tabelisse automaatselt.
+              otsib neist CFP-sid, teadussündmusi ja algatusi ning lisab leitud
+              kuulutused tabelisse automaatselt.
             </p>
           </section>
           <section>
-            <h2>2. Saada oma postkastist kiri edasi</h2>
+            <h2>
+              <span className="guide-number">2</span> Saada oma postkastist kiri
+              edasi
+            </h2>
             <p>
               Kui saad huvitava CFP, konverentsi, seminari või töötoa teate,
               vali oma postkastis <strong>„Saada edasi”</strong> ja määra
@@ -111,8 +119,8 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             </p>
             <p>
               Kui kahe kontrolli vahel saabub üle 30 kirja, võivad vanemad
-              sellest kontrollist välja jääda. Kui kirjast sobivat CFP-d või
-              teadussündmust ei leita, tabelisse uut rida ei teki.
+              sellest kontrollist välja jääda. Kui kirjast sobivat CFP-d,
+              teadussündmust või algatust ei leita, tabelisse uut rida ei teki.
             </p>
             <p>
               Kirja tekst saadetakse OpenAI-le andmete tuvastamiseks. Edasta
