@@ -78,7 +78,12 @@ export function ItemRow({
       <td className="announcement-cell">
         <h2>
           {url ? (
-            <a href={url} target="_blank" rel="noopener noreferrer">
+            <a
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Ava algallikas uues vahekaardis"
+            >
               {item.title} <span aria-hidden="true">↗</span>
             </a>
           ) : (
@@ -90,7 +95,37 @@ export function ItemRow({
             {[item.journal, item.organiser].filter(Boolean).join(' · ')}
           </p>
         )}
-        {!url && <span className="muted">Kuulutuse link puudub</span>}
+        {url ? (
+          <div className="source-action">
+            <a
+              className="source-link"
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Ava algallikas: ${item.title} (uues vahekaardis)`}
+            >
+              Ava algallikas
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 3h7v7M21 3l-11 11M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5" />
+              </svg>
+            </a>
+            <span className="source-domain">
+              {new URL(url).hostname.replace(/^www\./, '')} · uus vahekaart
+            </span>
+          </div>
+        ) : (
+          <span className="muted">Kuulutuse link puudub</span>
+        )}
       </td>
       <td className="date-cell">
         <span className="date-label">
