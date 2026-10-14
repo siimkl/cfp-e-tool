@@ -22,6 +22,7 @@ const sample = {
   deadline: '2027-02-15',
   event_start: null,
   event_end: null,
+  event_time: null,
   event_mode: 'UNKNOWN',
   location: null,
   homepage_url: 'https://example.org/call',
@@ -639,4 +640,17 @@ test('research initiative is extracted and repeated announcements are merged', (
   assert.equal(db.item_sources.length, 2);
   state.extractions.push([{ ...initiative, event_start: '2027-01-01' }]);
   assert.equal(c.processMessage(message('initiative-invalid')), 'ERROR');
+});
+
+
+test('yearless calendar hints reach the model and event time and platform survive storage', () => {
+ const { context: c, state, db } = harness();
+ state.extractions.push([{ ...sample, item_type: 'EVENT', deadline: null, event_start: '2026-10-16', event_end: null, event_time: '14:00 CET', event_mode: 'ONLINE', location: 'Microsoft Teams', source_excerpt: null }]);
+ const mail = { ...message('dreamy'), getDate: () => new Date('2026-10-13T20:36:02Z'), getPlainBody: () => 'Dreamy Stacks. Friday 16th October 2pm CET. Online via Microsoft Teams.' };
+ assert.equal(c.processMessage(mail), 'SUCCESS');
+ const request = JSON.parse(state.calls.find(call => call.url.includes('openai')).options.payload);
+ assert.match(JSON.stringify(request.input), /2026-10-16/);
+ assert.match(JSON.stringify(request.input), /Do not use receipt-based hints for historical/);
+ assert.equal(db.items[0].event_time, '14:00 CET');
+ assert.equal(db.items[0].location, 'Microsoft Teams');
 });

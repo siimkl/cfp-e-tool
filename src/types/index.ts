@@ -10,6 +10,7 @@ export interface ItemInput {
   deadline: string | null;
   event_start: string | null;
   event_end: string | null;
+  event_time: string | null;
   event_mode: EventMode;
   location: string | null;
   homepage_url: string | null;

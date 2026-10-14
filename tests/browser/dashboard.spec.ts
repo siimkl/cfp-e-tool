@@ -17,6 +17,7 @@ function item(id: string, changes = {}) {
     deadline: day(30),
     event_start: null,
     event_end: null,
+    event_time: null,
     event_mode: 'UNKNOWN',
     location: null,
     homepage_url: 'https://example.org/cfp',
@@ -488,17 +489,46 @@ test('broad category filters announcements and architecture shows all three diag
   ).toBe(true);
 });
 
+test('initiative tab counts active items and shows undated research initiatives', async ({
+  page,
+}) => {
+  await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
+    route.fulfill({
+      json: [
+        item('initiative', {
+          item_type: 'INITIATIVE',
+          title: 'DigiLabour: new research lab website',
+          deadline: null,
+        }),
+        item('cfp'),
+        item('past', { deadline: day(-2) }),
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(
+    page.getByRole('button', { name: 'Kõik (2)', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('button', {
+      name: 'Call for Papers (CFP) (1)',
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Algatused (1)', exact: true })
+    .click();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody')).toContainText('DigiLabour');
+  await expect(page.locator('tbody')).toContainText('Kuupäevata algatus');
+  await expect(page.locator('.type-badge.initiative svg')).toHaveCount(1);
+});
 
-test('initiative tab counts active items and shows undated research initiatives', async ({ page }) => {
- await page.route('https://cfp-test.supabase.co/rest/v1/items*', route => route.fulfill({ json: [
-   item('initiative', { item_type: 'INITIATIVE', title: 'DigiLabour: new research lab website', deadline: null }), item('cfp'), item('past', { deadline: day(-2) })
- ] }));
+
+test('event time is displayed as supplied and missing date appears only once', async ({ page }) => {
+ await page.route('https://cfp-test.supabase.co/rest/v1/items*', route => route.fulfill({ json: [item('timed', { item_type: 'EVENT', deadline: null, event_start: null, event_time: '14:00 CET', location: 'Microsoft Teams', event_mode: 'ONLINE' })] }));
  await page.goto('/');
- await expect(page.getByRole('button', { name: 'Kõik (2)', exact: true })).toBeVisible();
- await expect(page.getByRole('button', { name: 'Call for Papers (CFP) (1)', exact: true })).toBeVisible();
- await page.getByRole('button', { name: 'Algatused (1)', exact: true }).click();
- await expect(page.locator('tbody tr')).toHaveCount(1);
- await expect(page.locator('tbody')).toContainText('DigiLabour');
- await expect(page.locator('tbody')).toContainText('Kuupäevata algatus');
- await expect(page.locator('.type-badge.initiative svg')).toHaveCount(1);
+ await expect(page.locator('.event-time')).toHaveText('14:00 CET');
+ await expect(page.getByText('Kuupäev täpsustamisel', { exact: true })).toHaveCount(1);
+ await expect(page.locator('.location-cell')).toContainText('Microsoft Teams');
 });

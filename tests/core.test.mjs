@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  yearlessDateHints,
   normaliseUrl,
   normaliseText,
   fingerprint,
@@ -21,6 +22,7 @@ export const example = {
   deadline: '2027-02-15',
   event_start: null,
   event_end: null,
+  event_time: null,
   event_mode: 'UNKNOWN',
   location: null,
   homepage_url: 'https://example.org/cfp',
@@ -148,4 +150,14 @@ test('validation rejects impossible dates, reversed ranges and wrong type combin
     }),
   );
   assert.throws(() => validateItem({ ...example, event_start: '2027-02-17' }));
+});
+
+
+test('yearless dates use a bounded reference window and matching weekday', () => {
+ assert.deepEqual(yearlessDateHints('Friday 16th October 2pm CET.', '2026-10-13T20:36:02Z'), [{ source: 'Friday 16th October', date: '2026-10-16' }]);
+ assert.deepEqual(yearlessDateHints('Thursday 16th October', '2026-10-13T20:36:02Z'), []);
+ assert.deepEqual(yearlessDateHints('Friday 16th October 2020', '2026-10-13T20:36:02Z'), []);
+ assert.deepEqual(yearlessDateHints('Friday 31st February', '2026-02-01T00:00:00Z'), []);
+ assert.deepEqual(yearlessDateHints('Friday 16th October', '2027-06-01T00:00:00Z'), []);
+ assert.equal(yearlessDateHints('Friday 1st January', '2026-12-20T00:00:00Z')[0].date, '2027-01-01');
 });

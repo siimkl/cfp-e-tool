@@ -228,6 +228,9 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
       ),
       /dates_match_type/,
     );
+    await db.exec(readFileSync(new URL('../supabase/migrations/007_event_time.sql', import.meta.url), 'utf8'));
+    await db.exec("update items set event_time='14:00 CET' where item_type='EVENT'");
+    await assert.rejects(db.exec("update items set event_time=repeat('x',101)"), /check constraint/);
   } finally {
     await db.close();
   }

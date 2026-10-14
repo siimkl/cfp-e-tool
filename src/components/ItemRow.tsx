@@ -122,13 +122,25 @@ export function ItemRow({
               ? 'Algatus'
               : 'Toimumisaeg'}
         </span>
-        <strong>
-          {item.item_type === 'INITIATIVE'
-            ? '—'
-            : item.item_type === 'CFP'
-              ? displayDate(item.deadline)
-              : dateRange(item.event_start, item.event_end)}
-        </strong>
+        {(item.item_type === 'INITIATIVE' ||
+          item.deadline ||
+          item.event_start) && (
+          <strong>
+            {item.item_type === 'INITIATIVE'
+              ? '—'
+              : item.item_type === 'CFP'
+                ? displayDate(item.deadline)
+                : dateRange(item.event_start, item.event_end)}
+          </strong>
+        )}
+        {item.event_time && (
+          <span
+            className="event-time"
+            title="Kellaaeg ja ajavöönd algallika järgi"
+          >
+            {item.event_time}
+          </span>
+        )}
         <span className={`date-status ${status.tone}`}>{status.label}</span>
       </td>
       <td className="location-cell">

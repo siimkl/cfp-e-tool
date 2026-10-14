@@ -506,6 +506,7 @@ function extractionSchema() {
     deadline: nullable,
     event_start: nullable,
     event_end: nullable,
+    event_time: nullable,
     event_mode: {
       type: 'string',
       enum: ['IN_PERSON', 'ONLINE', 'HYBRID', 'UNKNOWN']
@@ -547,7 +548,8 @@ function extractionPrompt() {
     'For CFP use deadline and null event_start/event_end. For EVENT use event dates and null deadline. ' +
     'Preserve the real title, remove obvious CFP: boilerplate, write a factual summary at most 300 characters, and 2–8 academic topic keywords if supported. ' +
     'Topics MUST be Estonian labels chosen only from the topics enum, regardless of the language of the email. Choose only relevant categories; use an empty array if none fits. Keep all other content in its original language. Determine the language of EACH original announcement, ignoring the forwarding wrapper. If the announcement is in Estonian, its title, summary, organiser and journal MUST remain in Estonian: NEVER translate them into English. Write the summary in the same language as the original announcement, including when the source was forwarded with an English subject or introduction. Do not translate proper names. Assign exactly one broad Estonian category from the category enum based on the main subject; use Valdkondadeülene teadus for general research practice or genuinely cross-disciplinary announcements. ' +
-    'Dates must be YYYY-MM-DD; missing or ambiguous dates, including missing years, are null. Do not infer a year from the received date. ' +
+    'Dates must be YYYY-MM-DD. Read the entire announcement including standalone date lines before the abstract. If day and month are explicit but year is missing, use the original dated announcement or original forwarded header as the reference; otherwise use DATE (email received timestamp). Choose a year only if exactly one matching date falls within 30 days before to 180 days after that reference, and check any stated weekday. YEARLESS DATE HINTS supply calendar-checked candidates relative to receipt, not proof of which announcement they belong to. Do not use receipt-based hints for historical/reposted announcements or where the original forwarded date differs. A conflicting weekday or multiple plausible dates must remain null. Explicit years always take precedence. For a single-day event leave event_end null or equal event_start; never turn unrelated dates into an event range. ' +
+    'For EVENT event_time preserves the explicitly stated time and timezone, e.g. 14:00 CET. Do not guess a timezone or silently change CET to CEST, and do not convert it to Tallinn time. Missing times are null. For other types event_time is null. For online events location may be the explicit platform (Microsoft Teams, Zoom, etc.) established by the attendance link or text; never invent a city for an online event. ' +
     'Use only an explicit HTTP(S) URL from CANDIDATE LINKS or BODY; otherwise null. ' +
     'source_excerpt must be a short verbatim passage supporting the announcement, at most 500 characters, without signatures, contact details or forwarded headers. ' +
     'Never copy sender email addresses, Gmail identifiers or internal processing instructions into public fields. ' +
@@ -573,6 +575,7 @@ function callOpenAI(email) {
           email.sender +
           '\nDATE: ' +
           email.date +
+          '\nYEARLESS DATE HINTS (receipt-based, match to the relevant announcement): ' + JSON.stringify(yearlessDateHints(email.body, email.date)) +
           '\nBODY:\n' +
           email.body +
           '\nCANDIDATE LINKS:\n' +
@@ -653,6 +656,7 @@ function validateExtractedItem(item, email) {
     'deadline',
     'event_start',
     'event_end',
+    'event_time',
     'location',
     'homepage_url',
     'source_excerpt'
@@ -770,6 +774,7 @@ function publicFields(item) {
     'deadline',
     'event_start',
     'event_end',
+    'event_time',
     'event_mode',
     'location',
     'homepage_url',

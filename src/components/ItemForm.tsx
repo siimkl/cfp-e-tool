@@ -17,6 +17,7 @@ const empty: ItemInput = {
   deadline: null,
   event_start: null,
   event_end: null,
+  event_time: null,
   event_mode: 'UNKNOWN',
   location: null,
   homepage_url: null,
@@ -79,6 +80,7 @@ export function ItemForm({
               deadline: null,
               event_start: null,
               event_end: null,
+              event_time: null,
             }))
           }
         >
@@ -149,6 +151,17 @@ export function ItemForm({
             />
           </label>
         </div>
+      )}
+      {draft.item_type === 'EVENT' && (
+        <label>
+          Kellaaeg ja ajavöönd (algallika järgi)
+          <input
+            value={draft.event_time || ''}
+            maxLength={100}
+            placeholder="Näiteks 14:00 CET"
+            onChange={(e) => field('event_time', e.target.value)}
+          />
+        </label>
       )}
       <div className="form-pair">
         <label>

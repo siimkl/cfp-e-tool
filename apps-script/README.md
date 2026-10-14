@@ -80,3 +80,10 @@ Enne uuendatud importija ja veebilehe avaldamist rakenda migratsioon `005_item_c
 ### Algatused
 
 `INITIATIVE` tähistab konkreetset teadusalgatust, näiteks labori, uurimisvõrgustiku, projekti või teadusressursi tutvustust. Algatusel puuduvad sündmuse kuupäevad ja CFP tähtaeg. Automaatne tuvastamine, kategooriad, korduste ühendamine ja halduri muudatused toimivad ka algatuste puhul. Enne koodi avaldamist rakenda `006_initiatives.sql`; see lisab kasutaja esitatud DigiLabouri teate esimese käsitsi lisatud algatusena. Varasemaid töödeldud kirju uuesti ei analüüsita.
+
+
+### Aastaarvuta kuupäevad ja kellaajad
+
+Päeva ja kuu sisaldava kuupäeva puhul võib süsteem kasutada algkirja kuupäeva (selle puudumisel saabumisaega), kui 30 päeva varasemast kuni 180 päeva hilisemani jääb täpselt üks sobiv kuupäev ja kirjas nimetatud nädalapäev klapib. Ajaloolise või uuesti edastatud teate puhul ei tohi saabumisaeg algse teate aastat asendada. Ingliskeelsete nädalapäeva, päeva ja kuuga fraasidele lisatakse kalendri järgi kontrollitud abivihjed; seose konkreetse kuulutusega peab mudel kontrollima. Vastuoluline või puuduv kuupäev jääb tühjaks.
+
+`event_time` säilitab algallika kellaaja ja ajavööndi tekstina (näiteks `14:00 CET`), ilma vaikse ajavöönditeisenduseta. Veebisündmuse asukohaks võib olla kirjas või osalemislingis tuvastatav platvorm. Enne uuenduse avaldamist rakenda `007_event_time.sql`.

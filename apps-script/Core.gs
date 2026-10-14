@@ -115,6 +115,7 @@ function mergeFields(existing, incoming) {
     'deadline',
     'event_start',
     'event_end',
+    'event_time',
     'location',
     'homepage_url',
   ]) {
@@ -143,6 +144,11 @@ function validDate(value) {
   );
 }
 function validateItem(item) {
+  if (
+    item.event_time != null &&
+    (typeof item.event_time !== 'string' || item.event_time.length > 100)
+  )
+    throw new Error('Kellaaeg peab olema kuni 100 märki pikk tekst.');
   if (!ITEM_CATEGORIES.includes(item.category))
     throw new Error('Vali kuulutuse kategooria.');
   if (!['CFP', 'EVENT', 'INITIATIVE'].includes(item.item_type))
@@ -265,3 +271,49 @@ const ITEM_CATEGORIES = [
   'Tervis ja heaolu',
   'Valdkondadeülene teadus',
 ];
+
+function yearlessDateHints(body, receivedAt) {
+  const reference = new Date(receivedAt);
+  if (Number.isNaN(reference.getTime())) return [];
+  const months =
+    'january february march april may june july august september october november december'.split(
+      ' ',
+    );
+  const weekdays =
+    'sunday monday tuesday wednesday thursday friday saturday'.split(' ');
+  const pattern =
+    /\b(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday)[,\s]+(\d{1,2})(?:st|nd|rd|th)?\s+(January|February|March|April|May|June|July|August|September|October|November|December)\b(?![ ,]+\d{4}\b)/gi;
+  const result = [];
+  for (const match of body.matchAll(pattern)) {
+    const day = Number(match[2]),
+      month = months.indexOf(match[3].toLowerCase());
+    const weekday = weekdays.indexOf(match[1].toLowerCase());
+    const candidates = [];
+    for (
+      let year = reference.getUTCFullYear() - 1;
+      year <= reference.getUTCFullYear() + 1;
+      year++
+    ) {
+      const value = new Date(Date.UTC(year, month, day));
+      const distance =
+        (value.getTime() -
+          Date.UTC(
+            reference.getUTCFullYear(),
+            reference.getUTCMonth(),
+            reference.getUTCDate(),
+          )) /
+        86400000;
+      if (
+        value.getUTCMonth() === month &&
+        value.getUTCDate() === day &&
+        value.getUTCDay() === weekday &&
+        distance >= -30 &&
+        distance <= 180
+      )
+        candidates.push(value.toISOString().slice(0, 10));
+    }
+    if (candidates.length === 1)
+      result.push({ source: match[0], date: candidates[0] });
+  }
+  return result;
+}

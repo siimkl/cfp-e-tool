@@ -271,7 +271,7 @@ export function ArchitectureDiagrams() {
             'category · üks kuuest kategooriast',
             'topics[] · täpsemad teemasildid',
             'deadline / event_start / event_end',
-            'event_mode, location, homepage_url',
+            'event_time, event_mode, location, URL',
             'dedupe_key · unikaalne kordusevõti',
             'source_type, archived, ajatemplid',
             'FK created_by → auth.users.id',

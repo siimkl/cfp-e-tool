@@ -1229,3 +1229,10 @@ footer > * {
   font-size: 10px;
   overflow-wrap: anywhere;
 }
+
+.event-time {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 600;
+}
