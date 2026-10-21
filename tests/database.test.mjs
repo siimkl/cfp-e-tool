@@ -231,6 +231,11 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
     await db.exec(readFileSync(new URL('../supabase/migrations/007_event_time.sql', import.meta.url), 'utf8'));
     await db.exec("update items set event_time='14:00 CET' where item_type='EVENT'");
     await assert.rejects(db.exec("update items set event_time=repeat('x',101)"), /check constraint/);
+    await db.exec(readFileSync(new URL('../supabase/migrations/008_url_authority_validation.sql', import.meta.url), 'utf8'));
+    await db.exec("insert into items(item_type,title,homepage_url) values ('EVENT','Teams URL regression','https://events.teams.microsoft.com/event/event-id@tenant-id'),('CFP','Query URL regression','https://example.org/call?reference=a@b')");
+    for (const url of ['https://user:password@example.org/event', 'javascript:alert(1)', 'https://example.org/with space', 'https:///no-host']) {
+      await assert.rejects(db.query('update items set homepage_url=$1 where title=$2', [url, 'Teams URL regression']), /items_homepage_url_check/);
+    }
   } finally {
     await db.close();
   }

@@ -934,12 +934,13 @@ function fetchJson(url, options) {
           throw new Error('Remote service returned invalid JSON.');
         }
       }
-      // Do not persist response bodies: they can contain echoed input or credentials.
+      // Only allowlisted diagnostic fields; never log response bodies or request URLs.
       last = new Error(
         (url.indexOf('api.openai.com') >= 0 ? 'OpenAI' : 'Supabase') +
           ' HTTP ' +
           status +
-          '. Check account configuration, quotas and service logs.'
+          safeHttpDiagnostic(url, options, response) +
+          '. Check service logs for details.'
       );
       last.httpStatus = status;
       if (status !== 429 && status < 500) throw last;
@@ -951,6 +952,25 @@ function fetchJson(url, options) {
   }
   throw last;
 }
+function safeHttpDiagnostic(url, options, response) {
+  if (url.indexOf('/rest/v1/') < 0) return '';
+  var tables = ['items', 'item_sources', 'processed_emails', 'source_receipts', 'automation_runs'];
+  var table = url.split('/rest/v1/')[1].split('?')[0];
+  var method = String(options.method || 'get').toUpperCase();
+  var parts = [];
+  if (tables.indexOf(table) >= 0 && ['GET', 'POST', 'PATCH', 'DELETE'].indexOf(method) >= 0)
+    parts.push(method + ' ' + table);
+  try {
+    var data = JSON.parse(response.getContentText());
+    if (/^(?:[0-9A-Z]{5}|PGRST[0-9]{3})$/.test(data.code || '')) parts.push('code ' + data.code);
+    var constraints = ['items_homepage_url_check', 'items_topics_estonian', 'items_category_estonian', 'items_event_time_check', 'dates_match_type', 'sensible_event_dates', 'items_item_type_check', 'items_event_mode_check', 'items_title_check', 'item_sources_source_excerpt_check', 'item_sources_extraction_confidence_check'];
+    constraints.forEach(function (name) {
+      if (String(data.message || '').indexOf('"' + name + '"') >= 0) parts.push('constraint ' + name);
+    });
+  } catch (_) { /* Non-JSON error bodies are deliberately ignored. */ }
+  return parts.length ? ' [' + parts.join('; ') + ']' : '';
+}
+
 function safeError(error) {
   var message = String(
     (error && error.message) || 'Unknown processing failure'

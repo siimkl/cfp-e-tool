@@ -654,3 +654,25 @@ test('yearless calendar hints reach the model and event time and platform surviv
  assert.equal(db.items[0].event_time, '14:00 CET');
  assert.equal(db.items[0].location, 'Microsoft Teams');
 });
+
+
+test('Supabase errors expose safe diagnostic codes without echoed input or credentials', () => {
+ const { context: c } = harness();
+ c.UrlFetchApp.fetch = () => ({ getResponseCode: () => 400, getContentText: () => JSON.stringify({ code: '23514', message: 'new row violates check constraint "items_homepage_url_check"', details: 'secret key, email body and confidential content', hint: 'private value' }) });
+ assert.throws(() => c.rest('items?secret=do-not-log', 'post', {}), e => {
+   assert.match(e.message, /Supabase HTTP 400/);
+   assert.match(e.message, /POST items; code 23514; constraint items_homepage_url_check/);
+   assert.doesNotMatch(e.message, /secret|confidential|private|do-not-log/);
+   assert.equal(e.httpStatus, 400);
+   return true;
+ });
+});
+
+test('Teams event links with @ in the path survive extraction and storage', () => {
+ const { context: c, state, db } = harness();
+ const url = 'https://events.teams.microsoft.com/event/event-id@tenant-id';
+ state.extractions.push([{ ...sample, homepage_url: url }]);
+ const mail = { ...message('teams-at'), getPlainBody: () => 'Digital Society call for papers. '+url, getBody: () => '<a href="'+url+'">Attend</a>' };
+ assert.equal(c.processMessage(mail), 'SUCCESS');
+ assert.equal(db.items[0].homepage_url, url);
+});

@@ -87,3 +87,10 @@ Enne uuendatud importija ja veebilehe avaldamist rakenda migratsioon `005_item_c
 Päeva ja kuu sisaldava kuupäeva puhul võib süsteem kasutada algkirja kuupäeva (selle puudumisel saabumisaega), kui 30 päeva varasemast kuni 180 päeva hilisemani jääb täpselt üks sobiv kuupäev ja kirjas nimetatud nädalapäev klapib. Ajaloolise või uuesti edastatud teate puhul ei tohi saabumisaeg algse teate aastat asendada. Ingliskeelsete nädalapäeva, päeva ja kuuga fraasidele lisatakse kalendri järgi kontrollitud abivihjed; seose konkreetse kuulutusega peab mudel kontrollima. Vastuoluline või puuduv kuupäev jääb tühjaks.
 
 `event_time` säilitab algallika kellaaja ja ajavööndi tekstina (näiteks `14:00 CET`), ilma vaikse ajavöönditeisenduseta. Veebisündmuse asukohaks võib olla kirjas või osalemislingis tuvastatav platvorm. Enne uuenduse avaldamist rakenda `007_event_time.sql`.
+
+
+### Supabase HTTP 400 ja veebilingid
+
+Veateade sisaldab nüüd ainult turvalisi diagnostikaandmeid: meetod, tabel, SQLSTATE/PostgREST kood ja tuntud kontrolli nimi. Vastuse sisu, päringu parameetreid ega e-kirja teksti logisse ei lisata.
+
+Migratsioon `008_url_authority_validation.sql` lubab Teamsi sündmuselinkide `@` märgi URL-i teekonnas ja päringuosas, kuid keelab kasutajainfo (`https://user:password@host`) aadressi serveriosas. Varasem kontroll keelas `@` kõikjal ning põhjustas `items_homepage_url_check` vea. Pärast põhjuse parandamist võib haldur konkreetse ebaõnnestunud kirja uuesti lubada, muutes selle olekuks `ERROR` ja katsete arvuks 0. See ei korda juba edukalt töödeldud kirju; tavapärane viimase 30 kirja piir kehtib endiselt.
