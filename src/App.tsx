@@ -72,6 +72,7 @@ export default function App() {
   const [period, setPeriod] = useState('current');
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
+  const [highlightedOnly, setHighlightedOnly] = useState(false);
   const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('last7');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
@@ -197,6 +198,7 @@ export default function App() {
           if (tab === 'Initiatives' && item.item_type !== 'INITIATIVE')
             return false;
           if (category && item.category !== category) return false;
+          if (highlightedOnly && !item.highlighted) return false;
           if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
             return false;
           return [
@@ -218,7 +220,17 @@ export default function App() {
               primaryDate(b) || '9999',
             ) || a.title.localeCompare(b.title),
         ),
-    [items, tab, admin, category, query, today, addedPeriod, period],
+    [
+      items,
+      tab,
+      admin,
+      category,
+      highlightedOnly,
+      query,
+      today,
+      addedPeriod,
+      period,
+    ],
   );
   async function save(data: ItemInput) {
     if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
@@ -251,7 +263,10 @@ export default function App() {
     setNotice('Kuulutus salvestatud.');
     await load();
   }
-  async function mutate(item: Item, action: 'archive' | 'delete') {
+  async function mutate(
+    item: Item,
+    action: 'archive' | 'delete' | 'highlight',
+  ) {
     if (!supabase || !session) return;
     setBusy(true);
     setError('');
@@ -263,12 +278,19 @@ export default function App() {
             .eq('id', item.id)
             .select('id')
             .single()
-        : await supabase
-            .from('items')
-            .update({ archived: !item.archived })
-            .eq('id', item.id)
-            .select('id')
-            .single();
+        : action === 'highlight'
+          ? await supabase
+              .from('items')
+              .update({ highlighted: !item.highlighted })
+              .eq('id', item.id)
+              .select('id')
+              .single()
+          : await supabase
+              .from('items')
+              .update({ archived: !item.archived })
+              .eq('id', item.id)
+              .select('id')
+              .single();
     setBusy(false);
     if (error) {
       setError(errorText(error, 'Toiming ebaõnnestus. Proovi uuesti.'));
@@ -278,9 +300,13 @@ export default function App() {
     setNotice(
       action === 'delete'
         ? 'Kuulutus kustutatud.'
-        : item.archived
-          ? 'Kuulutus taastatud.'
-          : 'Kuulutus arhiveeritud.',
+        : action === 'highlight'
+          ? item.highlighted
+            ? 'Esiletõst eemaldatud.'
+            : 'Kuulutus esiletõstetud.'
+          : item.archived
+            ? 'Kuulutus taastatud.'
+            : 'Kuulutus arhiveeritud.',
     );
     await load();
   }
@@ -455,6 +481,16 @@ export default function App() {
                     ))}
                   </select>
                 </label>
+                <label className="highlight-filter">
+                  <input
+                    type="checkbox"
+                    checked={highlightedOnly}
+                    onChange={(event) =>
+                      setHighlightedOnly(event.target.checked)
+                    }
+                  />
+                  <span>Ainult esiletõstetud</span>
+                </label>
               </div>
               {notice && (
                 <div className="notice" role="status">
@@ -506,6 +542,7 @@ export default function App() {
                         setQuery('');
                         setAddedPeriod('last7');
                         setCategory('');
+                        setHighlightedOnly(false);
                         setTab('All');
                         setPeriod('current');
                       }}
@@ -560,6 +597,9 @@ export default function App() {
                                 onEdit={() => setDialog({ kind: 'edit', item })}
                                 onArchive={() => {
                                   if (!busy) void mutate(item, 'archive');
+                                }}
+                                onHighlight={() => {
+                                  if (!busy) void mutate(item, 'highlight');
                                 }}
                                 onDelete={() =>
                                   setDialog({ kind: 'delete', item })
@@ -672,6 +712,7 @@ export default function App() {
             <button onClick={() => setDialog(null)}>Loobu</button>
             <button
               className="danger"
+              data-initial-focus
               disabled={busy}
               onClick={() => void mutate(dialog.item, 'delete')}
             >

@@ -197,7 +197,7 @@ main {
 }
 .search-row {
   display: grid;
-  grid-template-columns: 185px 205px minmax(180px, 1fr) 240px;
+  grid-template-columns: 185px 205px minmax(180px, 1fr) 240px max-content;
   gap: 12px;
   margin-bottom: 15px;
 }
@@ -236,6 +236,29 @@ input::placeholder {
   border: 0;
   background: transparent;
 }
+.highlight-filter {
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #d6ded3;
+  border-radius: 5px;
+  color: #34483c;
+  font-size: 13px;
+  font-weight: 550;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.highlight-filter input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: #8a6500;
+  flex: 0 0 auto;
+}
 .results-line {
   display: flex;
   align-items: center;
@@ -266,6 +289,10 @@ input::placeholder {
 }
 .archived-badge {
   color: #8a7867;
+}
+.highlighted-badge {
+  color: #785b00;
+  font-weight: 650;
 }
 
 .publisher {
@@ -302,6 +329,11 @@ input::placeholder {
 }
 .danger-link {
   color: #9a403b;
+}
+.admin-actions .highlight-button[aria-pressed='true'] {
+  background: #fff4bf;
+  border-color: #d6b64f;
+  color: #634900;
 }
 .primary {
   background: #234f40;
@@ -826,6 +858,12 @@ blockquote {
 }
 .item-row:hover {
   background: #f8faf7;
+}
+.item-row.item-highlighted {
+  background: #fffdf2;
+}
+.item-row.item-highlighted:hover {
+  background: #fff9d9;
 }
 /* A full-height rail plus a tinted cell keeps urgency visible when scanning. */
 .announcements-table .kind-cell {

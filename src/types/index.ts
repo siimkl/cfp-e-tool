@@ -20,6 +20,7 @@ export interface Item extends ItemInput {
   id: string;
   source_type: 'EMAIL' | 'MANUAL';
   archived: boolean;
+  highlighted: boolean;
   created_at: string;
   updated_at: string;
   dedupe_key?: string | null;

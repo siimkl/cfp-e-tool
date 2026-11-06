@@ -17,7 +17,8 @@ Do not put a secret/service key or an OpenAI key into a `VITE_` variable, GitHub
 
 1. Open **SQL Editor → New query** in the Supabase dashboard.
 2. Paste the entire contents of [supabase/migrations/001_initial_schema.sql](supabase/migrations/001_initial_schema.sql) and click **Run**. Run this initial migration once on a new project. It uses a transaction so the tables and access policies are installed together.
-3. In **Table Editor**, verify these tables exist:
+3. Run the remaining numbered files in `supabase/migrations` in ascending order. For an existing installation, run only migrations newer than the last one already applied; highlight support requires `009_item_highlights.sql`.
+4. In **Table Editor**, verify these tables exist:
 
 | Table              | Purpose                                      | Anonymous access     | Invited staff access                                |
 | ------------------ | -------------------------------------------- | -------------------- | --------------------------------------------------- |
@@ -139,6 +140,7 @@ Changing frontend environment variables requires another build/deployment. Secre
 
 - Dates are compared as calendar dates in Europe/Tallinn. A deadline remains active for its full day; a multiday event stays visible until its end date. Undated items stay visible and sort last. New means created in the last seven days; merges do not mark an old item new again.
 - All public results are paginated from Supabase, avoiding its default 1,000-row cap. Search covers titles, journal, organiser, summary, topics and location.
+- Signed-in staff can highlight or delete an announcement directly from its table row. Highlights are public and persistent; the **Ainult esiletõstetud** checkbox combines with the other filters. Permanent deletion requires a focused confirmation as the second action.
 - Message IDs are authoritative, never Gmail labels. A new message in an old thread is eligible. Sent/alias messages, drafts and messages older than the lookback window are excluded.
 - Extraction uses strict JSON Schema, `store: false`, `reasoning.effort: none`, no tools and no URL fetching. A model refusal, incomplete response or invalid calendar date is an error, not a successful empty extraction.
 - Fingerprints are SHA-256 of type, normalised title, journal/organiser and primary date. Conservative secondary matching uses canonical URL, title, publisher and compatible dates. False negatives are preferable to incorrect merges. An explicit later-deadline extension can update a matching CFP; different recurring editions are kept separate.

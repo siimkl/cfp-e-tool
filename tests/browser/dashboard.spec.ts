@@ -24,6 +24,7 @@ function item(id: string, changes = {}) {
     topics: ['digitaalne ühiskond'],
     source_type: 'EMAIL',
     archived: false,
+    highlighted: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...changes,
@@ -194,6 +195,29 @@ test('public read, search, date filtering and mobile layout', async ({
     fullPage: true,
   });
 });
+
+test('highlighted-only checkbox filters the public table', async ({ page }) => {
+  await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
+    route.fulfill({
+      json: [
+        item('highlighted', {
+          title: 'Highlighted research call',
+          highlighted: true,
+        }),
+        item('regular', { title: 'Regular research call' }),
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  await page.getByLabel('Ainult esiletõstetud').check();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  const highlighted = page.locator('tbody tr');
+  await expect(highlighted).toHaveClass(/item-highlighted/);
+  await expect(highlighted).toContainText('Highlighted research call');
+  await expect(highlighted).not.toContainText('Regular research call');
+});
+
 test('added-date filter uses Tallinn dates and rolling periods', async ({
   page,
 }) => {
@@ -314,7 +338,19 @@ test('staff can add CFP and event, edit, inspect provenance, archive, restore an
   await page.getByRole('button', { name: /^Arhiveeritud \(/ }).click();
   await card.getByRole('button', { name: 'Taasta', exact: true }).click();
   await page.getByRole('button', { name: /^Kõik \(/ }).click();
+  await card.getByRole('button', { name: 'Tõsta esile', exact: true }).click();
+  await expect(card).toHaveClass(/item-highlighted/);
+  await expect(card.locator('.highlighted-badge')).toContainText(
+    'Esiletõstetud',
+  );
+  await page.getByLabel('Ainult esiletõstetud').check();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Lähtesta filtrid' }).click();
+  await expect(page.getByLabel('Ainult esiletõstetud')).not.toBeChecked();
   await card.getByRole('button', { name: 'Kustuta', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: 'Kustuta jäädavalt' }),
+  ).toBeFocused();
   await page.getByRole('button', { name: 'Kustuta jäädavalt' }).click();
   await expect(card).toHaveCount(0);
   await page.getByRole('button', { name: 'Logi välja' }).click();

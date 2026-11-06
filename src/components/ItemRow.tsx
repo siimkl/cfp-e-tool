@@ -15,6 +15,7 @@ export function ItemRow({
   admin,
   onEdit,
   onArchive,
+  onHighlight,
   onDelete,
   onSources,
 }: {
@@ -23,13 +24,16 @@ export function ItemRow({
   admin: boolean;
   onEdit: () => void;
   onArchive: () => void;
+  onHighlight: () => void;
   onDelete: () => void;
   onSources: () => void;
 }) {
   const url = normaliseUrl(item.homepage_url);
   const status = dateStatus(item, today);
   return (
-    <tr className={`item-row date-${status.tone}`}>
+    <tr
+      className={`item-row date-${status.tone}${item.highlighted ? ' item-highlighted' : ''}`}
+    >
       <td className="kind-cell">
         <span
           className={'type-badge ' + item.item_type.toLowerCase()}
@@ -74,6 +78,11 @@ export function ItemRow({
           </span>
         </span>
         {item.archived && <span className="archived-badge">Arhiveeritud</span>}
+        {item.highlighted && (
+          <span className="highlighted-badge">
+            <span aria-hidden="true">★</span> Esiletõstetud
+          </span>
+        )}
       </td>
       <td className="announcement-cell">
         <h2>{item.title}</h2>
@@ -154,6 +163,14 @@ export function ItemRow({
       {admin && (
         <td>
           <div className="admin-actions">
+            <button
+              className="highlight-button"
+              aria-pressed={item.highlighted}
+              onClick={onHighlight}
+            >
+              <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
+              {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
+            </button>
             <button onClick={onEdit}>Muuda</button>
             <button onClick={onArchive}>
               {item.archived ? 'Taasta' : 'Arhiveeri'}

@@ -236,6 +236,41 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
     for (const url of ['https://user:password@example.org/event', 'javascript:alert(1)', 'https://example.org/with space', 'https:///no-host']) {
       await assert.rejects(db.query('update items set homepage_url=$1 where title=$2', [url, 'Teams URL regression']), /items_homepage_url_check/);
     }
+    await db.exec(
+      readFileSync(
+        new URL('../supabase/migrations/009_item_highlights.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select highlighted from items where title='Teams URL regression'",
+        )
+      ).rows[0].highlighted,
+      false,
+    );
+    await db.exec(
+      "set role authenticated; update items set highlighted=true where title='Teams URL regression'; reset role",
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select highlighted from items where title='Teams URL regression'",
+        )
+      ).rows[0].highlighted,
+      true,
+    );
+    await db.exec('set role anon');
+    assert.equal(
+      (
+        await db.query(
+          "select highlighted from items where title='Teams URL regression'",
+        )
+      ).rows[0].highlighted,
+      true,
+    );
+    await db.exec('reset role');
   } finally {
     await db.close();
   }
