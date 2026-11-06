@@ -10,6 +10,7 @@ import { ITEM_CATEGORIES } from '../shared/core.js';
 import type { Session } from '@supabase/supabase-js';
 import {
   configurationReady,
+  legacyPublicItemColumns,
   publicItemColumns,
   supabase,
 } from './lib/supabase';
@@ -73,6 +74,7 @@ export default function App() {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
   const [highlightedOnly, setHighlightedOnly] = useState(false);
+  const [highlightSupported, setHighlightSupported] = useState(true);
   const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('last7');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
@@ -121,23 +123,48 @@ export default function App() {
   }, []);
   const load = useCallback(async () => {
     if (!supabase || !authReady) return;
+    const client = supabase;
     const version = ++request.current;
     setLoading(true);
     setError('');
     try {
       const all: Item[] = [];
+      let columns = publicItemColumns;
+      let supportsHighlights = true;
       // Paginate explicitly; Supabase's default row limit is 1,000.
       for (let offset = 0; ; offset += 500) {
-        const { data, error } = await supabase
-          .from('items')
-          .select(publicItemColumns)
-          .order('id')
-          .range(offset, offset + 499);
+        const readPage = (selectedColumns: string) =>
+          client
+            .from('items')
+            .select(selectedColumns)
+            .order('id')
+            .range(offset, offset + 499);
+        let { data, error } = await readPage(columns);
+        if (
+          offset === 0 &&
+          error?.code === '42703' &&
+          error.message.includes('highlighted')
+        ) {
+          columns = legacyPublicItemColumns;
+          supportsHighlights = false;
+          ({ data, error } = await readPage(columns));
+        }
         if (error) throw error;
-        all.push(...(data as Item[]));
-        if (data.length < 500) break;
+        const rows = (data ?? []) as unknown as Array<
+          Omit<Item, 'highlighted'> & { highlighted?: boolean }
+        >;
+        all.push(
+          ...rows.map((item) => ({
+            ...item,
+            highlighted: item.highlighted === true,
+          })),
+        );
+        if (rows.length < 500) break;
       }
-      if (version === request.current) setItems(all);
+      if (version === request.current) {
+        setItems(all);
+        setHighlightSupported(supportsHighlights);
+      }
     } catch (e) {
       if (version === request.current)
         setError(
@@ -481,16 +508,18 @@ export default function App() {
                     ))}
                   </select>
                 </label>
-                <label className="highlight-filter">
-                  <input
-                    type="checkbox"
-                    checked={highlightedOnly}
-                    onChange={(event) =>
-                      setHighlightedOnly(event.target.checked)
-                    }
-                  />
-                  <span>Ainult esiletõstetud</span>
-                </label>
+                {highlightSupported && (
+                  <label className="highlight-filter">
+                    <input
+                      type="checkbox"
+                      checked={highlightedOnly}
+                      onChange={(event) =>
+                        setHighlightedOnly(event.target.checked)
+                      }
+                    />
+                    <span>Ainult esiletõstetud</span>
+                  </label>
+                )}
               </div>
               {notice && (
                 <div className="notice" role="status">
@@ -598,9 +627,14 @@ export default function App() {
                                 onArchive={() => {
                                   if (!busy) void mutate(item, 'archive');
                                 }}
-                                onHighlight={() => {
-                                  if (!busy) void mutate(item, 'highlight');
-                                }}
+                                onHighlight={
+                                  highlightSupported
+                                    ? () => {
+                                        if (!busy)
+                                          void mutate(item, 'highlight');
+                                      }
+                                    : undefined
+                                }
                                 onDelete={() =>
                                   setDialog({ kind: 'delete', item })
                                 }

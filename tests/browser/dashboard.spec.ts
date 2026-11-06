@@ -218,6 +218,34 @@ test('highlighted-only checkbox filters the public table', async ({ page }) => {
   await expect(highlighted).not.toContainText('Regular research call');
 });
 
+test('dashboard falls back cleanly before the highlight migration is applied', async ({
+  page,
+}) => {
+  const { highlighted: _highlighted, ...legacyItem } = item('legacy');
+  let requests = 0;
+  await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) => {
+    requests++;
+    const selected = new URL(route.request().url()).searchParams.get('select');
+    if (selected?.includes('highlighted')) {
+      return route.fulfill({
+        status: 400,
+        json: {
+          code: '42703',
+          message: 'column items.highlighted does not exist',
+        },
+      });
+    }
+    return route.fulfill({ json: [legacyItem] });
+  });
+  await page.goto('/');
+  await expect(
+    page.getByRole('heading', { name: 'Research on Digital Society' }),
+  ).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByLabel('Ainult esiletõstetud')).toHaveCount(0);
+  expect(requests).toBe(2);
+});
+
 test('added-date filter uses Tallinn dates and rolling periods', async ({
   page,
 }) => {
@@ -560,11 +588,27 @@ test('initiative tab counts active items and shows undated research initiatives'
   await expect(page.locator('.type-badge.initiative svg')).toHaveCount(1);
 });
 
-
-test('event time is displayed as supplied and missing date appears only once', async ({ page }) => {
- await page.route('https://cfp-test.supabase.co/rest/v1/items*', route => route.fulfill({ json: [item('timed', { item_type: 'EVENT', deadline: null, event_start: null, event_time: '14:00 CET', location: 'Microsoft Teams', event_mode: 'ONLINE' })] }));
- await page.goto('/');
- await expect(page.locator('.event-time')).toHaveText('14:00 CET');
- await expect(page.getByText('Kuupäev täpsustamisel', { exact: true })).toHaveCount(1);
- await expect(page.locator('.location-cell')).toContainText('Microsoft Teams');
+test('event time is displayed as supplied and missing date appears only once', async ({
+  page,
+}) => {
+  await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
+    route.fulfill({
+      json: [
+        item('timed', {
+          item_type: 'EVENT',
+          deadline: null,
+          event_start: null,
+          event_time: '14:00 CET',
+          location: 'Microsoft Teams',
+          event_mode: 'ONLINE',
+        }),
+      ],
+    }),
+  );
+  await page.goto('/');
+  await expect(page.locator('.event-time')).toHaveText('14:00 CET');
+  await expect(
+    page.getByText('Kuupäev täpsustamisel', { exact: true }),
+  ).toHaveCount(1);
+  await expect(page.locator('.location-cell')).toContainText('Microsoft Teams');
 });

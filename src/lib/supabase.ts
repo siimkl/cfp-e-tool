@@ -9,3 +9,5 @@ export const configurationReady =
 export const supabase = configurationReady ? createClient(url, key) : null;
 export const publicItemColumns =
   'id,item_type,title,category,journal,organiser,summary,deadline,event_start,event_end,event_time,event_mode,location,homepage_url,topics,archived,highlighted,created_at,updated_at,source_type';
+export const legacyPublicItemColumns =
+  'id,item_type,title,category,journal,organiser,summary,deadline,event_start,event_end,event_time,event_mode,location,homepage_url,topics,archived,created_at,updated_at,source_type';

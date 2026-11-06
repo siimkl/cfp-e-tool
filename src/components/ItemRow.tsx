@@ -24,7 +24,7 @@ export function ItemRow({
   admin: boolean;
   onEdit: () => void;
   onArchive: () => void;
-  onHighlight: () => void;
+  onHighlight?: () => void;
   onDelete: () => void;
   onSources: () => void;
 }) {
@@ -163,14 +163,16 @@ export function ItemRow({
       {admin && (
         <td>
           <div className="admin-actions">
-            <button
-              className="highlight-button"
-              aria-pressed={item.highlighted}
-              onClick={onHighlight}
-            >
-              <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
-              {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
-            </button>
+            {onHighlight && (
+              <button
+                className="highlight-button"
+                aria-pressed={item.highlighted}
+                onClick={onHighlight}
+              >
+                <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
+                {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
+              </button>
+            )}
             <button onClick={onEdit}>Muuda</button>
             <button onClick={onArchive}>
               {item.archived ? 'Taasta' : 'Arhiveeri'}
