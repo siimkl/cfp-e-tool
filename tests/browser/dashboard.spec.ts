@@ -309,14 +309,16 @@ test('added-date filter uses Tallinn dates and rolling periods', async ({
   await expect(page.locator('tbody tr')).toHaveCount(6);
 });
 
-test('header source link opens the guide instead of staff login', async ({
+test('public view exposes staff login and the source guide', async ({
   page,
 }) => {
   await api(page);
   await page.goto('/');
+  await page.getByRole('button', { name: 'Halduri sisselogimine' }).click();
   await expect(
-    page.getByRole('button', { name: /Halduri sisselogimine/ }),
-  ).toHaveCount(0);
+    page.getByRole('heading', { name: 'Halduri sisselogimine' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Sulge aken' }).click();
   await page
     .locator('header')
     .getByRole('link', { name: /Lisa uus allikas/ })

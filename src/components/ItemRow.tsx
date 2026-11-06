@@ -163,16 +163,20 @@ export function ItemRow({
       {admin && (
         <td>
           <div className="admin-actions">
-            {onHighlight && (
-              <button
-                className="highlight-button"
-                aria-pressed={item.highlighted}
-                onClick={onHighlight}
-              >
-                <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
-                {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
-              </button>
-            )}
+            <button
+              className="highlight-button"
+              aria-pressed={item.highlighted}
+              disabled={!onHighlight}
+              title={
+                onHighlight
+                  ? undefined
+                  : 'Esiletõstmine vajab Supabase’i migratsiooni 009_item_highlights.sql'
+              }
+              onClick={onHighlight}
+            >
+              <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
+              {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
+            </button>
             <button onClick={onEdit}>Muuda</button>
             <button onClick={onArchive}>
               {item.archived ? 'Taasta' : 'Arhiveeri'}

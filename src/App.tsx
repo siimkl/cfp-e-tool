@@ -409,16 +409,20 @@ export default function App() {
         ) : (
           <>
             <section className="directory" aria-label="Kuulutused">
-              {admin && (
-                <div className="directory-heading">
+              <div className="directory-heading">
+                {admin ? (
                   <button
                     className="primary"
                     onClick={() => setDialog({ kind: 'edit' })}
                   >
                     + Lisa kuulutus
                   </button>
-                </div>
-              )}
+                ) : (
+                  <button onClick={() => setDialog({ kind: 'login' })}>
+                    Halduri sisselogimine
+                  </button>
+                )}
+              </div>
               <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
                 {(
                   [
@@ -536,6 +540,12 @@ export default function App() {
                 <div className="error" role="alert">
                   {error}{' '}
                   <button onClick={() => void load()}>Proovi uuesti</button>
+                </div>
+              )}
+              {admin && !highlightSupported && (
+                <div className="notice migration-notice" role="status">
+                  Esiletõstmise aktiveerimiseks käivita Supabase’i SQL Editoris
+                  migratsioon <code>009_item_highlights.sql</code>.
                 </div>
               )}
               {!configurationReady ? (
