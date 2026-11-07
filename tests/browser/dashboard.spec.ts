@@ -192,9 +192,6 @@ test('dashboard falls back cleanly before the highlight migration is applied', a
   await expect(
     page.getByRole('button', { name: 'Tõsta esile' }),
   ).toBeDisabled();
-  await expect(page.getByRole('status')).toContainText(
-    '010_internal_open_editing.sql',
-  );
   expect(requests).toBeGreaterThanOrEqual(2);
 });
 

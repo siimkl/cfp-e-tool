@@ -401,13 +401,6 @@ export default function App() {
                   <button onClick={() => void load()}>Proovi uuesti</button>
                 </div>
               )}
-              {!highlightSupported && (
-                <div className="notice migration-notice" role="status">
-                  Ühiskasutuse ja esiletõstmise aktiveerimiseks käivita
-                  Supabase’i SQL Editoris migratsioon{' '}
-                  <code>010_internal_open_editing.sql</code>.
-                </div>
-              )}
               {!configurationReady ? (
                 <div className="empty-state">
                   <span className="empty-symbol" aria-hidden="true">

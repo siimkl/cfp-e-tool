@@ -162,11 +162,7 @@ export function ItemRow({
             className="highlight-button"
             aria-pressed={item.highlighted}
             disabled={!onHighlight}
-            title={
-              onHighlight
-                ? undefined
-                : 'Esiletõstmine vajab Supabase’i migratsiooni 010_internal_open_editing.sql'
-            }
+            title={onHighlight ? undefined : 'Esiletõstmine pole veel saadaval'}
             onClick={onHighlight}
           >
             <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}

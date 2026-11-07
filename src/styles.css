@@ -561,14 +561,6 @@ footer span:first-child {
   background: none;
   padding: 0 8px;
 }
-.migration-notice {
-  justify-content: flex-start;
-  gap: 5px;
-  flex-wrap: wrap;
-}
-.migration-notice code {
-  font-weight: 650;
-}
 .error {
   background: #faeae7;
   color: #91382e;
