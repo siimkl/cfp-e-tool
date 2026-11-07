@@ -12,3 +12,6 @@ enable_anonymous_sign_ins = false
 
 [auth.email]
 enable_signup = false
+
+[functions.structure-item]
+verify_jwt = false

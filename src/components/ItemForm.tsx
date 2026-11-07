@@ -25,15 +25,18 @@ const empty: ItemInput = {
 };
 export function ItemForm({
   item,
+  initial,
   onSave,
   onCancel,
 }: {
   item?: Item;
+  initial?: ItemInput;
   onSave: (data: ItemInput) => Promise<void>;
   onCancel: () => void;
 }) {
-  const [draft, setDraft] = useState<ItemInput>(item || empty);
-  const [topics, setTopics] = useState<string[]>(item?.topics || []);
+  const startingValue = item || initial || empty;
+  const [draft, setDraft] = useState<ItemInput>(startingValue);
+  const [topics, setTopics] = useState<string[]>(startingValue.topics || []);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   function field(name: keyof ItemInput, value: string) {

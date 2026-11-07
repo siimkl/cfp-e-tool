@@ -59,6 +59,26 @@ async function api(page: Page) {
         contentType: 'application/json',
         body: JSON.stringify(body),
       });
+    if (url.pathname === '/functions/v1/structure-item') {
+      return respond({
+        item: {
+          item_type: 'CFP',
+          title: 'Staff CFP',
+          category: 'Ühiskond ja sotsiaalteadused',
+          journal: 'Internal Research Journal',
+          organiser: null,
+          summary: 'A structured announcement from pasted text.',
+          deadline: day(20),
+          event_start: null,
+          event_end: null,
+          event_time: null,
+          event_mode: 'UNKNOWN',
+          location: null,
+          homepage_url: 'https://example.org/staff-cfp',
+          topics: ['sotsiaalteadused'],
+        },
+      });
+    }
     if (url.pathname.includes('/items')) {
       if (req.method() === 'GET') return respond(rows);
       if (req.method() === 'POST') {
@@ -264,7 +284,7 @@ test('open workspace exposes creation controls and the source guide', async ({
   await api(page);
   await page.goto('/');
   await expect(
-    page.getByRole('button', { name: '+ Lisa kuulutus' }),
+    page.locator('header').getByRole('button', { name: '+ Lisa kuulutus' }),
   ).toBeVisible();
   await expect(
     page.getByRole('button', { name: 'Halduri sisselogimine' }),
@@ -285,16 +305,33 @@ test('open workspace exposes creation controls and the source guide', async ({
 test('any visitor can add CFP and event, edit, archive, highlight, restore and delete', async ({
   page,
 }) => {
-  await api(page);
+  const requests = await api(page);
   await page.goto('/');
   await page.getByRole('button', { name: '+ Lisa kuulutus' }).click();
-  await page.getByLabel('Pealkiri').fill('Staff CFP');
-  await page.getByLabel('Tähtaeg', { exact: true }).fill(day(20));
+  const source = page.getByLabel('Kleebi link või kuulutuse tekst');
+  await expect(source).toHaveAttribute('maxlength', '1000');
+  await source.fill(
+    'Call for papers: Staff CFP. Deadline in twenty days. https://example.org/staff-cfp',
+  );
+  await expect(page.getByText('82 / 1000', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Tuvasta andmed' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Kontrolli kuulutuse andmeid' }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Pealkiri')).toHaveValue('Staff CFP');
+  expect(
+    requests.some(
+      (request) =>
+        request.url === '/functions/v1/structure-item' &&
+        request.data?.text?.startsWith('Call for papers:'),
+    ),
+  ).toBe(true);
   await page.getByRole('button', { name: 'Salvesta kuulutus' }).click();
   await expect(
     page.getByRole('heading', { name: 'Staff CFP', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: '+ Lisa kuulutus' }).click();
+  await page.getByRole('button', { name: 'Täida käsitsi' }).click();
   await page.getByRole('combobox', { name: /^Liik/ }).selectOption('EVENT');
   await page.getByLabel('Pealkiri').fill('Staff conference');
   await page.getByLabel('Sündmuse algus').fill(day(40));

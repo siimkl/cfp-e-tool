@@ -160,6 +160,7 @@ export function ArchitectureDiagrams() {
           lines={[
             'React + TypeScript',
             'Tabel, kategooriad ja filtrid',
+            'Kleebitud teksti kontrollitav lisamine',
             'Avalik Supabase’i võti',
           ]}
           width={340}
@@ -177,6 +178,7 @@ export function ArchitectureDiagrams() {
           title="Supabase"
           lines={[
             'REST API + PostgreSQL',
+            'Edge Function: AI-vormi eeltäitmine',
             'RLS: items sisemine ühiskasutus',
             'E-kirjade lähteandmed privaatsed',
             'RPC: allikate koondstatistika',
@@ -244,7 +246,7 @@ export function ArchitectureDiagrams() {
           y={655}
         />
         <text x="660" y="690" fontSize="15">
-          Brauser ei kutsu OpenAI API-t.
+          Brauser kutsub OpenAI-d ainult Supabase Edge Functioni kaudu.
         </text>
         <text x="660" y="716" fontSize="15">
           Taustatöö jätkub ka suletud veebilehega.

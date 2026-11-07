@@ -17,6 +17,7 @@ import { makeDedupeKey } from './lib/dedupe';
 import type { Item, ItemInput } from './types';
 import { ItemRow } from './components/ItemRow';
 import { ItemForm } from './components/ItemForm';
+import { QuickItemInput } from './components/QuickItemInput';
 import { Modal } from './components/Modal';
 import { InfoPage, type InfoPageKind } from './components/InfoPage';
 import { errorText } from './lib/messages';
@@ -30,7 +31,10 @@ const tabLabels: Record<Tab, string> = {
   Archived: 'Arhiveeritud',
 };
 type Dialog =
-  { kind: 'edit'; item?: Item } | { kind: 'delete'; item: Item } | null;
+  | { kind: 'capture' }
+  | { kind: 'edit'; item?: Item; initial?: ItemInput }
+  | { kind: 'delete'; item: Item }
+  | null;
 export default function App() {
   const getInfoPage = (): InfoPageKind | null =>
     window.location.hash === '#/allikad'
@@ -201,6 +205,30 @@ export default function App() {
     setNotice('Kuulutus salvestatud.');
     await load();
   }
+  async function extractItem(text: string) {
+    if (!supabase) throw new Error('Andmebaasi ühendus puudub.');
+    const { data, error } = await supabase.functions.invoke('structure-item', {
+      body: { text },
+    });
+    if (error) {
+      let message = '';
+      const context = (error as { context?: Response }).context;
+      if (context) {
+        try {
+          const body = (await context.clone().json()) as { error?: string };
+          message = body.error || '';
+        } catch {
+          // Use the stable fallback below for non-JSON gateway errors.
+        }
+      }
+      throw new Error(
+        message || 'Kuulutuse automaatne tuvastamine ei ole praegu saadaval.',
+      );
+    }
+    const item = (data as { item?: ItemInput } | null)?.item;
+    if (!item) throw new Error('Keelemudel ei tagastanud kuulutuse andmeid.');
+    setDialog({ kind: 'edit', initial: item });
+  }
   async function mutate(
     item: Item,
     action: 'archive' | 'delete' | 'highlight',
@@ -268,6 +296,12 @@ export default function App() {
             </span>
           </a>
           <div className="header-actions">
+            <button
+              className="primary header-add-button"
+              onClick={() => setDialog({ kind: 'capture' })}
+            >
+              + Lisa kuulutus
+            </button>
             <a className="header-source-link" href="#/allikad">
               Lisa uus allikas, mida jälgida <span aria-hidden="true">↗</span>
             </a>
@@ -280,14 +314,6 @@ export default function App() {
         ) : (
           <>
             <section className="directory" aria-label="Kuulutused">
-              <div className="directory-heading">
-                <button
-                  className="primary"
-                  onClick={() => setDialog({ kind: 'edit' })}
-                >
-                  + Lisa kuulutus
-                </button>
-              </div>
               <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
                 {(
                   ['All', 'CFPs', 'Events', 'Initiatives', 'Archived'] as Tab[]
@@ -550,13 +576,29 @@ export default function App() {
           <a href="mailto:siim.klais@ut.ee">siim.klais@ut.ee</a>
         </span>
       </footer>
+      {dialog?.kind === 'capture' && (
+        <Modal title="Lisa kuulutus" onClose={() => setDialog(null)}>
+          <QuickItemInput
+            onExtract={extractItem}
+            onManual={() => setDialog({ kind: 'edit' })}
+            onCancel={() => setDialog(null)}
+          />
+        </Modal>
+      )}
       {dialog?.kind === 'edit' && (
         <Modal
-          title={dialog.item ? 'Muuda kuulutust' : 'Lisa kuulutus'}
+          title={
+            dialog.item
+              ? 'Muuda kuulutust'
+              : dialog.initial
+                ? 'Kontrolli kuulutuse andmeid'
+                : 'Lisa kuulutus'
+          }
           onClose={() => setDialog(null)}
         >
           <ItemForm
             item={dialog.item}
+            initial={dialog.initial}
             onSave={save}
             onCancel={() => setDialog(null)}
           />

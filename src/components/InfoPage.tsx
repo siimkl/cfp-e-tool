@@ -210,7 +210,10 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               </div>
               <div>
                 <dt>OpenAI API</dt>
-                <dd>Kirjateksti analüüs ja kuulutuste andmete tuvastamine.</dd>
+                <dd>
+                  Kirjateksti ja kasutaja kleebitud kuulutuse analüüs ning
+                  andmete struktureerimine.
+                </dd>
               </div>
               <div>
                 <dt>Supabase / PostgreSQL</dt>
@@ -234,10 +237,11 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               ja kustutada. Sisselogimist ei ole vaja.
             </p>
             <p>
-              OpenAI ja andmebaasi salajased võtmed asuvad taustaskripti
-              seadetes. Avalik veebileht ei vaja neid võtmeid. Kirjade
-              täistekste andmebaasi ei salvestata; e-kirjade allikaviited ja
-              töötlusandmed ei ole brauserile kättesaadavad.
+              OpenAI ja andmebaasi salajased võtmed asuvad taustaskripti või
+              serveripoolse Supabase’i funktsiooni seadetes. Veebileht ei saa
+              neid võtmeid. Kirjade täistekste andmebaasi ei salvestata;
+              e-kirjade allikaviited ja töötlusandmed ei ole brauserile
+              kättesaadavad.
             </p>
           </section>
         </>
