@@ -215,29 +215,29 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
               <div>
                 <dt>Supabase / PostgreSQL</dt>
                 <dd>
-                  Andmete säilitamine, haldurite sisselogimine ja
-                  ligipääsuõigused.
+                  Andmete säilitamine, ühiskasutuses kuulutuste muutmine ja
+                  privaatsete lähteandmete kaitse.
                 </dd>
               </div>
             </dl>
           </section>
           <section className="info-note">
-            <h2>Automaatika ja haldurid</h2>
+            <h2>Automaatika ja ühiskasutus</h2>
             <p>
               Taustatöö toimub umbes kell 04:00 ja 16:00 Tallinna aja järgi ka
               siis, kui keegi veebilehte ei vaata. Uued tulemused ilmuvad
               tabelisse lehe laadimisel või värskendamisel.
             </p>
             <p>
-              Külastajad saavad kuulutusi sirvida ja filtreerida. Sisseloginud
-              haldurid saavad neid lisada, parandada, arhiveerida ning vaadata
-              allikate infot.
+              Kõik rakenduse aadressi teadvad kasutajad saavad kuulutusi
+              sirvida, filtreerida, lisada, parandada, esile tõsta, arhiveerida
+              ja kustutada. Sisselogimist ei ole vaja.
             </p>
             <p>
               OpenAI ja andmebaasi salajased võtmed asuvad taustaskripti
               seadetes. Avalik veebileht ei vaja neid võtmeid. Kirjade
-              täistekste andmebaasi ei salvestata; allikaviited ja töötlusandmed
-              on nähtavad ainult halduritele.
+              täistekste andmebaasi ei salvestata; e-kirjade allikaviited ja
+              töötlusandmed ei ole brauserile kättesaadavad.
             </p>
           </section>
         </>

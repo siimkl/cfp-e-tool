@@ -30,7 +30,7 @@ function item(id: string, changes = {}) {
     ...changes,
   };
 }
-async function api(page: Page, staff = false) {
+async function api(page: Page) {
   let rows = [
     item('1'),
     item('2', {
@@ -48,43 +48,6 @@ async function api(page: Page, staff = false) {
     item('4', { title: 'Archived CFP', archived: true }),
   ];
   const requests: { url: string; method: string; data: any }[] = [];
-  const user = {
-    id: '11111111-1111-4111-8111-111111111111',
-    aud: 'authenticated',
-    role: 'authenticated',
-    email: 'staff@example.org',
-    app_metadata: { provider: 'email' },
-    user_metadata: {},
-    created_at: new Date().toISOString(),
-  };
-  if (staff) {
-    const jwt = [
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
-      Buffer.from(
-        JSON.stringify({
-          sub: user.id,
-          exp: Math.floor(Date.now() / 1000) + 3600,
-          role: 'authenticated',
-        }),
-      ).toString('base64url'),
-      'testsignature',
-    ].join('.');
-    await page.addInitScript(
-      ({ user, jwt }) =>
-        localStorage.setItem(
-          'sb-cfp-test-auth-token',
-          JSON.stringify({
-            access_token: jwt,
-            refresh_token: 'test-refresh',
-            expires_at: Math.floor(Date.now() / 1000) + 3600,
-            expires_in: 3600,
-            token_type: 'bearer',
-            user,
-          }),
-        ),
-      { user, jwt },
-    );
-  }
   await page.route('https://cfp-test.supabase.co/**', async (route) => {
     const req = route.request();
     const url = new URL(req.url());
@@ -96,25 +59,8 @@ async function api(page: Page, staff = false) {
         contentType: 'application/json',
         body: JSON.stringify(body),
       });
-    if (url.pathname.includes('/auth/v1/user')) return respond(user);
-    if (url.pathname.includes('/auth/v1/otp')) return respond({});
-    if (url.pathname.includes('/auth/v1/logout')) return respond({});
-    if (url.pathname.includes('/item_sources'))
-      return respond([
-        {
-          id: 's1',
-          source_excerpt: 'Academic announcement excerpt',
-          extraction_confidence: 0.96,
-          processed_emails: {
-            sender: 'private-sender@example.org',
-            subject: 'Private newsletter subject',
-            received_at: new Date().toISOString(),
-          },
-        },
-      ]);
     if (url.pathname.includes('/items')) {
-      if (req.method() === 'GET')
-        return respond(rows.filter((row) => staff || !row.archived));
+      if (req.method() === 'GET') return respond(rows);
       if (req.method() === 'POST') {
         const row = item(String(rows.length + 1), data);
         rows.push(row);
@@ -149,8 +95,8 @@ test('public read, search, date filtering and mobile layout', async ({
     0,
   );
   await expect(
-    page.getByRole('button', { name: 'Muuda', exact: true }),
-  ).toHaveCount(0);
+    page.getByRole('button', { name: 'Muuda', exact: true }).first(),
+  ).toBeVisible();
   await page
     .getByRole('combobox', { name: 'Kuulutuste olek' })
     .selectOption('past');
@@ -243,7 +189,13 @@ test('dashboard falls back cleanly before the highlight migration is applied', a
   ).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
   await expect(page.getByLabel('Ainult esiletõstetud')).toHaveCount(0);
-  expect(requests).toBe(2);
+  await expect(
+    page.getByRole('button', { name: 'Tõsta esile' }),
+  ).toBeDisabled();
+  await expect(page.getByRole('status')).toContainText(
+    '010_internal_open_editing.sql',
+  );
+  expect(requests).toBeGreaterThanOrEqual(2);
 });
 
 test('added-date filter uses Tallinn dates and rolling periods', async ({
@@ -309,16 +261,17 @@ test('added-date filter uses Tallinn dates and rolling periods', async ({
   await expect(page.locator('tbody tr')).toHaveCount(6);
 });
 
-test('public view exposes staff login and the source guide', async ({
+test('open workspace exposes creation controls and the source guide', async ({
   page,
 }) => {
   await api(page);
   await page.goto('/');
-  await page.getByRole('button', { name: 'Halduri sisselogimine' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Halduri sisselogimine' }),
+    page.getByRole('button', { name: '+ Lisa kuulutus' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Sulge aken' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Halduri sisselogimine' }),
+  ).toHaveCount(0);
   await page
     .locator('header')
     .getByRole('link', { name: /Lisa uus allikas/ })
@@ -332,10 +285,10 @@ test('public view exposes staff login and the source guide', async ({
   await expect(page).toHaveURL(/#\/allikad$/);
 });
 
-test('staff can add CFP and event, edit, inspect provenance, archive, restore and delete', async ({
+test('any visitor can add CFP and event, edit, archive, highlight, restore and delete', async ({
   page,
 }) => {
-  await api(page, true);
+  await api(page);
   await page.goto('/');
   await page.getByRole('button', { name: '+ Lisa kuulutus' }).click();
   await page.getByLabel('Pealkiri').fill('Staff CFP');
@@ -357,12 +310,6 @@ test('staff can add CFP and event, edit, inspect provenance, archive, restore an
   await page.getByLabel('Asukoht', { exact: true }).fill('Tartu');
   await page.getByRole('button', { name: 'Salvesta kuulutus' }).click();
   await expect(card.getByText('Tartu', { exact: true })).toBeVisible();
-  const automated = page.locator('tbody tr').filter({
-    has: page.getByRole('heading', { name: 'Research on Digital Society' }),
-  });
-  await automated.getByRole('button', { name: 'Allikad', exact: true }).click();
-  await expect(page.getByText('private-sender@example.org')).toBeVisible();
-  await page.getByRole('button', { name: 'Sulge aken' }).click();
   await card.getByRole('button', { name: 'Arhiveeri', exact: true }).click();
   await expect(card).toHaveCount(0);
   await page.getByRole('button', { name: /^Arhiveeritud \(/ }).click();
@@ -383,13 +330,9 @@ test('staff can add CFP and event, edit, inspect provenance, archive, restore an
   ).toBeFocused();
   await page.getByRole('button', { name: 'Kustuta jäädavalt' }).click();
   await expect(card).toHaveCount(0);
-  await page.getByRole('button', { name: 'Logi välja' }).click();
-  await expect(
-    page.locator('header').getByRole('link', { name: /Lisa uus allikas/ }),
-  ).toBeVisible();
   await expect(
     page.getByRole('button', { name: '+ Lisa kuulutus' }),
-  ).toHaveCount(0);
+  ).toBeVisible();
 });
 test('backend errors remain visible with a retry control', async ({ page }) => {
   await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>

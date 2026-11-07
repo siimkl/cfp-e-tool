@@ -177,8 +177,8 @@ export function ArchitectureDiagrams() {
           title="Supabase"
           lines={[
             'REST API + PostgreSQL',
-            'RLS: avalik lugemine, piiratud kirjutus',
-            'Auth: haldurite autentimine',
+            'RLS: items sisemine ühiskasutus',
+            'E-kirjade lähteandmed privaatsed',
             'RPC: allikate koondstatistika',
           ]}
           width={340}
@@ -186,7 +186,7 @@ export function ArchitectureDiagrams() {
         <Arrow
           id="technical"
           path="M830 334 V440"
-          label="HTTPS: päringud / halduri muudatused"
+          label="HTTPS: päringud / ühised muudatused"
           x={825}
           y={391}
         />
@@ -273,8 +273,8 @@ export function ArchitectureDiagrams() {
             'deadline / event_start / event_end',
             'event_time, event_mode, location, URL',
             'dedupe_key · unikaalne kordusevõti',
-            'source_type, archived, ajatemplid',
-            'FK created_by → auth.users.id',
+            'source_type, archived, highlighted',
+            'ajatemplid, created_by (pärandväli)',
           ]}
         />
         <Box

@@ -1,13 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FormEvent,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ITEM_CATEGORIES } from '../shared/core.js';
-import type { Session } from '@supabase/supabase-js';
 import {
   configurationReady,
   legacyPublicItemColumns,
@@ -22,16 +14,12 @@ import {
   type AddedPeriod,
 } from './lib/dates';
 import { makeDedupeKey } from './lib/dedupe';
-import type { Item, ItemInput, Source } from './types';
+import type { Item, ItemInput } from './types';
 import { ItemRow } from './components/ItemRow';
 import { ItemForm } from './components/ItemForm';
 import { Modal } from './components/Modal';
 import { InfoPage, type InfoPageKind } from './components/InfoPage';
-import {
-  clearFieldValidation,
-  errorText,
-  translateFieldValidation,
-} from './lib/messages';
+import { errorText } from './lib/messages';
 
 type Tab = 'All' | 'CFPs' | 'Events' | 'Initiatives' | 'Archived';
 const tabLabels: Record<Tab, string> = {
@@ -42,11 +30,7 @@ const tabLabels: Record<Tab, string> = {
   Archived: 'Arhiveeritud',
 };
 type Dialog =
-  | { kind: 'login' }
-  | { kind: 'edit'; item?: Item }
-  | { kind: 'sources'; item: Item }
-  | { kind: 'delete'; item: Item }
-  | null;
+  { kind: 'edit'; item?: Item } | { kind: 'delete'; item: Item } | null;
 export default function App() {
   const getInfoPage = (): InfoPageKind | null =>
     window.location.hash === '#/allikad'
@@ -63,8 +47,6 @@ export default function App() {
     window.addEventListener('hashchange', navigate);
     return () => window.removeEventListener('hashchange', navigate);
   }, []);
-  const [session, setSession] = useState<Session | null>(null);
-  const [authReady, setAuthReady] = useState(!supabase);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -78,51 +60,14 @@ export default function App() {
   const [addedPeriod, setAddedPeriod] = useState<AddedPeriod>('last7');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [busy, setBusy] = useState(false);
-  const [sources, setSources] = useState<Source[]>([]);
-  const [sourceError, setSourceError] = useState('');
-  const [sourcesLoading, setSourcesLoading] = useState(false);
-  const [email, setEmail] = useState('');
-  const [loginMessage, setLoginMessage] = useState('');
   const [today, setToday] = useState(todayInTallinn());
   const request = useRef(0);
-  const admin = Boolean(session);
   useEffect(() => {
     const timer = setInterval(() => setToday(todayInTallinn()), 60000);
     return () => clearInterval(timer);
   }, []);
-  useEffect(() => {
-    if (!supabase) return;
-    let mounted = true;
-    supabase.auth.getSession().then(({ data, error }) => {
-      if (mounted) {
-        setSession(data.session);
-        setAuthReady(true);
-        if (error)
-          setError(
-            errorText(
-              error,
-              'Sisselogimise kontrollimine ebaõnnestus. Palun logi uuesti sisse.',
-            ),
-          );
-      }
-    });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
-      setAuthReady(true);
-      setSources([]);
-      setDialog(null);
-      setItems([]);
-      request.current++;
-      if (!next)
-        setTab((current) => (current === 'Archived' ? 'All' : current));
-    });
-    return () => {
-      mounted = false;
-      data.subscription.unsubscribe();
-    };
-  }, []);
   const load = useCallback(async () => {
-    if (!supabase || !authReady) return;
+    if (!supabase) return;
     const client = supabase;
     const version = ++request.current;
     setLoading(true);
@@ -173,33 +118,10 @@ export default function App() {
     } finally {
       if (version === request.current) setLoading(false);
     }
-  }, [authReady, session?.user.id]);
+  }, []);
   useEffect(() => {
     void load();
   }, [load]);
-  useEffect(() => {
-    if (!session || dialog?.kind !== 'sources' || !supabase) return;
-    let cancelled = false;
-    setSourcesLoading(true);
-    setSourceError('');
-    setSources([]);
-    supabase
-      .from('item_sources')
-      .select(
-        'id,source_excerpt,extraction_confidence,processed_emails(sender,subject,received_at)',
-      )
-      .eq('item_id', dialog.item.id)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error)
-          setSourceError(errorText(error, 'Allikate laadimine ebaõnnestus.'));
-        else setSources(data as unknown as Source[]);
-        setSourcesLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [dialog, session]);
   const current = useMemo(
     () => items.filter((item) => !item.archived && !isPast(item, today)),
     [items, today],
@@ -209,7 +131,7 @@ export default function App() {
       items
         .filter((item) => {
           if (tab === 'Archived') {
-            if (!admin || !item.archived) return false;
+            if (!item.archived) return false;
           } else {
             if (
               item.archived ||
@@ -247,20 +169,10 @@ export default function App() {
               primaryDate(b) || '9999',
             ) || a.title.localeCompare(b.title),
         ),
-    [
-      items,
-      tab,
-      admin,
-      category,
-      highlightedOnly,
-      query,
-      today,
-      addedPeriod,
-      period,
-    ],
+    [items, tab, category, highlightedOnly, query, today, addedPeriod, period],
   );
   async function save(data: ItemInput) {
-    if (!supabase || !session) throw new Error('Palun logi uuesti sisse.');
+    if (!supabase) throw new Error('Andmebaasi ühendus puudub.');
     const dedupe_key = await makeDedupeKey(data);
     const result =
       dialog?.kind === 'edit' && dialog.item
@@ -276,7 +188,6 @@ export default function App() {
               ...data,
               dedupe_key,
               source_type: 'MANUAL',
-              created_by: session.user.id,
             })
             .select('id')
             .single();
@@ -294,7 +205,7 @@ export default function App() {
     item: Item,
     action: 'archive' | 'delete' | 'highlight',
   ) {
-    if (!supabase || !session) return;
+    if (!supabase) return;
     setBusy(true);
     setError('');
     const { error } =
@@ -337,39 +248,6 @@ export default function App() {
     );
     await load();
   }
-  async function login(event: FormEvent) {
-    event.preventDefault();
-    if (!supabase) return;
-    setBusy(true);
-    setLoginMessage('');
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: window.location.origin + window.location.pathname,
-      },
-    });
-    setBusy(false);
-    setLoginMessage(
-      error
-        ? errorText(
-            error,
-            'Sisselogimislingi saatmine ebaõnnestus. Kontrolli e-posti aadressi ja proovi uuesti.',
-          )
-        : 'Vaata oma postkastist sisselogimislinki. Sisse saavad logida ainult kutse saanud haldurid.',
-    );
-  }
-  async function logout() {
-    const { error } = await supabase!.auth.signOut();
-    if (error)
-      setError(errorText(error, 'Toiming ebaõnnestus. Proovi uuesti.'));
-    else {
-      setSession(null);
-      setDialog(null);
-      setSources([]);
-      setNotice('Oled välja logitud.');
-    }
-  }
   return (
     <>
       <header className="site-header">
@@ -390,16 +268,9 @@ export default function App() {
             </span>
           </a>
           <div className="header-actions">
-            {admin ? (
-              <>
-                <span className="staff-label">Haldusvaade</span>
-                <button onClick={() => void logout()}>Logi välja</button>
-              </>
-            ) : (
-              <a className="header-source-link" href="#/allikad">
-                Lisa uus allikas, mida jälgida <span aria-hidden="true">↗</span>
-              </a>
-            )}
+            <a className="header-source-link" href="#/allikad">
+              Lisa uus allikas, mida jälgida <span aria-hidden="true">↗</span>
+            </a>
           </div>
         </div>
       </header>
@@ -410,28 +281,16 @@ export default function App() {
           <>
             <section className="directory" aria-label="Kuulutused">
               <div className="directory-heading">
-                {admin ? (
-                  <button
-                    className="primary"
-                    onClick={() => setDialog({ kind: 'edit' })}
-                  >
-                    + Lisa kuulutus
-                  </button>
-                ) : (
-                  <button onClick={() => setDialog({ kind: 'login' })}>
-                    Halduri sisselogimine
-                  </button>
-                )}
+                <button
+                  className="primary"
+                  onClick={() => setDialog({ kind: 'edit' })}
+                >
+                  + Lisa kuulutus
+                </button>
               </div>
               <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
                 {(
-                  [
-                    'All',
-                    'CFPs',
-                    'Events',
-                    'Initiatives',
-                    ...(admin ? ['Archived'] : []),
-                  ] as Tab[]
+                  ['All', 'CFPs', 'Events', 'Initiatives', 'Archived'] as Tab[]
                 ).map((value) => (
                   <button
                     key={value}
@@ -441,7 +300,7 @@ export default function App() {
                     {tabLabels[value]}{' '}
                     <span className="tab-count">
                       (
-                      {!configurationReady || !authReady || loading
+                      {!configurationReady || loading
                         ? '—'
                         : value === 'Archived'
                           ? items.filter((i) => i.archived).length
@@ -542,10 +401,11 @@ export default function App() {
                   <button onClick={() => void load()}>Proovi uuesti</button>
                 </div>
               )}
-              {admin && !highlightSupported && (
+              {!highlightSupported && (
                 <div className="notice migration-notice" role="status">
-                  Esiletõstmise aktiveerimiseks käivita Supabase’i SQL Editoris
-                  migratsioon <code>009_item_highlights.sql</code>.
+                  Ühiskasutuse ja esiletõstmise aktiveerimiseks käivita
+                  Supabase’i SQL Editoris migratsioon{' '}
+                  <code>010_internal_open_editing.sql</code>.
                 </div>
               )}
               {!configurationReady ? (
@@ -559,11 +419,11 @@ export default function App() {
                     avalik API-võti ning loo rakenduse uus versioon.
                   </p>
                   <p className="muted">
-                    Failis README.md on juhised andmebaasi, haldurite ligipääsu
-                    ja Gmailist importimise seadistamiseks.
+                    Failis README.md on juhised andmebaasi, ühiskasutuse ja
+                    Gmailist importimise seadistamiseks.
                   </p>
                 </div>
-              ) : loading || !authReady ? (
+              ) : loading ? (
                 <p className="loading" role="status">
                   Kuulutuste laadimine…
                 </p>
@@ -623,7 +483,7 @@ export default function App() {
                               <th scope="col">Toimumiskoht</th>
                               <th scope="col">Kategooria</th>
                               <th scope="col">Kokkuvõte</th>
-                              {admin && <th scope="col">Haldus</th>}
+                              <th scope="col">Haldus</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -632,7 +492,6 @@ export default function App() {
                                 key={item.id}
                                 item={item}
                                 today={today}
-                                admin={admin}
                                 onEdit={() => setDialog({ kind: 'edit', item })}
                                 onArchive={() => {
                                   if (!busy) void mutate(item, 'archive');
@@ -647,9 +506,6 @@ export default function App() {
                                 }
                                 onDelete={() =>
                                   setDialog({ kind: 'delete', item })
-                                }
-                                onSources={() =>
-                                  setDialog({ kind: 'sources', item })
                                 }
                               />
                             ))}
@@ -667,7 +523,7 @@ export default function App() {
                         <p>
                           {query || category || addedPeriod !== 'all'
                             ? 'Proovi teist otsingut või lähtesta filtrid.'
-                            : 'Kuulutused ilmuvad siia, kui haldur need lisab või need postkastist imporditakse.'}
+                            : 'Kuulutused ilmuvad siia, kui kasutaja need lisab või need postkastist imporditakse.'}
                         </p>
                       </div>
                     )
@@ -701,40 +557,7 @@ export default function App() {
           <a href="mailto:siim.klais@ut.ee">siim.klais@ut.ee</a>
         </span>
       </footer>
-      {dialog?.kind === 'login' && (
-        <Modal title="Halduri sisselogimine" onClose={() => setDialog(null)}>
-          <p>
-            Sisesta kutse saanud halduri e-posti aadress. Saadame sellele
-            turvalise sisselogimislingi.
-          </p>
-          <form
-            className="item-form"
-            onSubmit={login}
-            onInvalidCapture={translateFieldValidation}
-            onInputCapture={clearFieldValidation}
-          >
-            <label>
-              E-posti aadress
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-            {loginMessage && <p role="status">{loginMessage}</p>}
-            <button className="primary" disabled={busy}>
-              {busy ? 'Saatmine…' : 'Saada sisselogimislink'}
-            </button>
-            <p className="muted">
-              Ligipääs on ainult volitatud halduritel. Avalik registreerumine on
-              suletud.
-            </p>
-          </form>
-        </Modal>
-      )}
-      {admin && dialog?.kind === 'edit' && (
+      {dialog?.kind === 'edit' && (
         <Modal
           title={dialog.item ? 'Muuda kuulutust' : 'Lisa kuulutus'}
           onClose={() => setDialog(null)}
@@ -746,7 +569,7 @@ export default function App() {
           />
         </Modal>
       )}
-      {admin && dialog?.kind === 'delete' && (
+      {dialog?.kind === 'delete' && (
         <Modal title="Kas kustutada kuulutus?" onClose={() => setDialog(null)}>
           <p>
             Kuulutus „{dialog.item.title}” ja selle allikaviited kustutatakse
@@ -763,55 +586,6 @@ export default function App() {
               {busy ? 'Kustutamine…' : 'Kustuta jäädavalt'}
             </button>
           </div>
-        </Modal>
-      )}
-      {admin && dialog?.kind === 'sources' && (
-        <Modal title="Kuulutuse allikad" onClose={() => setDialog(null)}>
-          <h3>{dialog.item.title}</h3>
-          <p>
-            Allikas:{' '}
-            {dialog.item.source_type === 'EMAIL'
-              ? 'automaatselt imporditud'
-              : 'käsitsi lisatud'}
-          </p>
-          {sourcesLoading ? (
-            <p role="status">Allikate laadimine…</p>
-          ) : sourceError ? (
-            <p className="error" role="alert">
-              {sourceError}
-            </p>
-          ) : sources.length ? (
-            sources.map((source) => (
-              <div className="source" key={source.id}>
-                <strong>
-                  {source.processed_emails?.subject || 'Teema puudub'}
-                </strong>
-                <p>{source.processed_emails?.sender}</p>
-                <p>
-                  {source.processed_emails &&
-                    new Date(
-                      source.processed_emails.received_at,
-                    ).toLocaleString('et-EE', {
-                      timeZone: 'Europe/Tallinn',
-                    })}{' '}
-                  · Tallinna aeg
-                </p>
-                {source.source_excerpt && (
-                  <blockquote>{source.source_excerpt}</blockquote>
-                )}
-                <p className="muted">
-                  Andmete tuvastamise kindlus:{' '}
-                  {source.extraction_confidence == null
-                    ? 'määramata'
-                    : Math.round(source.extraction_confidence * 100) + '%'}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="muted">
-              Sellele kuulutusele pole e-kirjade allikaid lisatud.
-            </p>
-          )}
         </Modal>
       )}
     </>

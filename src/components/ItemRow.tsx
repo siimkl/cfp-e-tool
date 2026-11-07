@@ -12,21 +12,17 @@ const modes = {
 export function ItemRow({
   item,
   today,
-  admin,
   onEdit,
   onArchive,
   onHighlight,
   onDelete,
-  onSources,
 }: {
   item: Item;
   today: string;
-  admin: boolean;
   onEdit: () => void;
   onArchive: () => void;
   onHighlight?: () => void;
   onDelete: () => void;
-  onSources: () => void;
 }) {
   const url = normaliseUrl(item.homepage_url);
   const status = dateStatus(item, today);
@@ -160,34 +156,31 @@ export function ItemRow({
       <td className="summary-cell">
         {item.summary || <span className="muted">—</span>}
       </td>
-      {admin && (
-        <td>
-          <div className="admin-actions">
-            <button
-              className="highlight-button"
-              aria-pressed={item.highlighted}
-              disabled={!onHighlight}
-              title={
-                onHighlight
-                  ? undefined
-                  : 'Esiletõstmine vajab Supabase’i migratsiooni 009_item_highlights.sql'
-              }
-              onClick={onHighlight}
-            >
-              <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
-              {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
-            </button>
-            <button onClick={onEdit}>Muuda</button>
-            <button onClick={onArchive}>
-              {item.archived ? 'Taasta' : 'Arhiveeri'}
-            </button>
-            <button onClick={onSources}>Allikad</button>
-            <button className="danger-link" onClick={onDelete}>
-              Kustuta
-            </button>
-          </div>
-        </td>
-      )}
+      <td>
+        <div className="admin-actions">
+          <button
+            className="highlight-button"
+            aria-pressed={item.highlighted}
+            disabled={!onHighlight}
+            title={
+              onHighlight
+                ? undefined
+                : 'Esiletõstmine vajab Supabase’i migratsiooni 010_internal_open_editing.sql'
+            }
+            onClick={onHighlight}
+          >
+            <span aria-hidden="true">{item.highlighted ? '★' : '☆'}</span>{' '}
+            {item.highlighted ? 'Eemalda esiletõst' : 'Tõsta esile'}
+          </button>
+          <button onClick={onEdit}>Muuda</button>
+          <button onClick={onArchive}>
+            {item.archived ? 'Taasta' : 'Arhiveeri'}
+          </button>
+          <button className="danger-link" onClick={onDelete}>
+            Kustuta
+          </button>
+        </div>
+      </td>
     </tr>
   );
 }

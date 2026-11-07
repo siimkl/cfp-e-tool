@@ -271,6 +271,70 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
       true,
     );
     await db.exec('reset role');
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/010_internal_open_editing.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    await db.exec('set role anon');
+    assert.equal(
+      (
+        await db.query(
+          "select count(*)::int as count from items where title='Hidden record'",
+        )
+      ).rows[0].count,
+      1,
+    );
+    await db.exec(
+      "insert into items(item_type,title,source_type) values ('CFP','Open workspace item','MANUAL')",
+    );
+    await db.exec(
+      "update items set highlighted=true where title='Open workspace item'",
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select highlighted from items where title='Open workspace item'",
+        )
+      ).rows[0].highlighted,
+      true,
+    );
+    await assert.rejects(
+      db.exec(
+        "insert into items(item_type,title,source_type) values ('CFP','Anonymous automation','EMAIL')",
+      ),
+      /row-level security/,
+    );
+    for (const sql of [
+      'select * from processed_emails',
+      'select * from item_sources',
+      'select * from automation_runs',
+    ])
+      await assert.rejects(db.query(sql), /permission denied/);
+    await db.exec("delete from items where title='Open workspace item'");
+    assert.equal(
+      (
+        await db.query(
+          "select count(*)::int as count from items where title='Open workspace item'",
+        )
+      ).rows[0].count,
+      0,
+    );
+    await db.exec('reset role');
+    await db.exec('set role authenticated');
+    await db.exec(
+      "insert into items(item_type,title,source_type) values ('EVENT','Existing session item','MANUAL')",
+    );
+    await assert.rejects(
+      db.query('select * from item_sources'),
+      /permission denied/,
+    );
+    await db.exec("delete from items where title='Existing session item'");
+    await db.exec('reset role');
   } finally {
     await db.close();
   }

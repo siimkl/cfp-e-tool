@@ -43,7 +43,7 @@ const nodes: Node[] = [
     x: 865,
     y: 295,
     kind: 'exception',
-    lines: ['Salvesta veateade ja lõpeta', 'Haldur saab põhjuse üle vaadata'],
+    lines: ['Salvesta veateade ja lõpeta', 'Kasutaja saab põhjuse üle vaadata'],
   },
   {
     id: 'gmail',
@@ -153,7 +153,7 @@ const nodes: Node[] = [
     y: 1475,
     lines: [
       'Täienda olemasolevat kuulutust',
-      'Säilita halduri tehtud parandused',
+      'Säilita kasutaja tehtud parandused',
     ],
   },
   {
