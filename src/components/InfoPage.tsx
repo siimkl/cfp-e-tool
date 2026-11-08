@@ -62,8 +62,8 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             </ol>
             <p>
               Edaspidi jõuavad selle allika kirjad ühisesse postkasti. Süsteem
-              otsib neist CFP-sid, teadussündmusi ja algatusi ning lisab leitud
-              kuulutused tabelisse automaatselt.
+              otsib neist CFP-sid ja teadussündmusi ning lisab leitud kuulutused
+              tabelisse automaatselt.
             </p>
           </section>
           <section>
@@ -120,7 +120,7 @@ export function InfoPage({ kind }: { kind: InfoPageKind }) {
             <p>
               Kui kahe kontrolli vahel saabub üle 30 kirja, võivad vanemad
               sellest kontrollist välja jääda. Kui kirjast sobivat CFP-d,
-              teadussündmust või algatust ei leita, tabelisse uut rida ei teki.
+              teadussündmust ei leita, tabelisse uut rida ei teki.
             </p>
             <p>
               Kirja tekst saadetakse OpenAI-le andmete tuvastamiseks. Edasta

@@ -1,4 +1,4 @@
-export type ItemType = 'CFP' | 'EVENT' | 'INITIATIVE';
+export type ItemType = 'CFP' | 'EVENT';
 export type EventMode = 'IN_PERSON' | 'ONLINE' | 'HYBRID' | 'UNKNOWN';
 export interface ItemInput {
   item_type: ItemType;
@@ -19,7 +19,6 @@ export interface ItemInput {
 export interface Item extends ItemInput {
   id: string;
   source_type: 'EMAIL' | 'MANUAL';
-  archived: boolean;
   highlighted: boolean;
   created_at: string;
   updated_at: string;

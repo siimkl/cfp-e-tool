@@ -150,8 +150,8 @@ export function validateItem(item) {
     throw new Error('Kellaaeg peab olema kuni 100 märki pikk tekst.');
   if (!ITEM_CATEGORIES.includes(item.category))
     throw new Error('Vali kuulutuse kategooria.');
-  if (!['CFP', 'EVENT', 'INITIATIVE'].includes(item.item_type))
-    throw new Error('Vali CFP, sündmus või algatus.');
+  if (!['CFP', 'EVENT'].includes(item.item_type))
+    throw new Error('Vali CFP või sündmus.');
   if (typeof item.title !== 'string' || !item.title.trim())
     throw new Error('A title is required.');
   if (item.title.length > 500)
@@ -164,11 +164,6 @@ export function validateItem(item) {
     throw new Error('Enter an event start date before an end date.');
   if (item.event_end && item.event_start > item.event_end)
     throw new Error('Event end cannot precede event start.');
-  if (
-    item.item_type === 'INITIATIVE' &&
-    (item.deadline || item.event_start || item.event_end)
-  )
-    throw new Error('Algatusel ei ole tähtaega ega sündmuse kuupäevi.');
   if (item.item_type === 'EVENT' && item.deadline)
     throw new Error('Use a separate CFP for a submission deadline.');
   if (item.item_type === 'CFP' && (item.event_start || item.event_end))

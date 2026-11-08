@@ -228,17 +228,51 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
       ),
       /dates_match_type/,
     );
-    await db.exec(readFileSync(new URL('../supabase/migrations/007_event_time.sql', import.meta.url), 'utf8'));
-    await db.exec("update items set event_time='14:00 CET' where item_type='EVENT'");
-    await assert.rejects(db.exec("update items set event_time=repeat('x',101)"), /check constraint/);
-    await db.exec(readFileSync(new URL('../supabase/migrations/008_url_authority_validation.sql', import.meta.url), 'utf8'));
-    await db.exec("insert into items(item_type,title,homepage_url) values ('EVENT','Teams URL regression','https://events.teams.microsoft.com/event/event-id@tenant-id'),('CFP','Query URL regression','https://example.org/call?reference=a@b')");
-    for (const url of ['https://user:password@example.org/event', 'javascript:alert(1)', 'https://example.org/with space', 'https:///no-host']) {
-      await assert.rejects(db.query('update items set homepage_url=$1 where title=$2', [url, 'Teams URL regression']), /items_homepage_url_check/);
+    await db.exec(
+      readFileSync(
+        new URL('../supabase/migrations/007_event_time.sql', import.meta.url),
+        'utf8',
+      ),
+    );
+    await db.exec(
+      "update items set event_time='14:00 CET' where item_type='EVENT'",
+    );
+    await assert.rejects(
+      db.exec("update items set event_time=repeat('x',101)"),
+      /check constraint/,
+    );
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/008_url_authority_validation.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    await db.exec(
+      "insert into items(item_type,title,homepage_url) values ('EVENT','Teams URL regression','https://events.teams.microsoft.com/event/event-id@tenant-id'),('CFP','Query URL regression','https://example.org/call?reference=a@b')",
+    );
+    for (const url of [
+      'https://user:password@example.org/event',
+      'javascript:alert(1)',
+      'https://example.org/with space',
+      'https:///no-host',
+    ]) {
+      await assert.rejects(
+        db.query('update items set homepage_url=$1 where title=$2', [
+          url,
+          'Teams URL regression',
+        ]),
+        /items_homepage_url_check/,
+      );
     }
     await db.exec(
       readFileSync(
-        new URL('../supabase/migrations/009_item_highlights.sql', import.meta.url),
+        new URL(
+          '../supabase/migrations/009_item_highlights.sql',
+          import.meta.url,
+        ),
         'utf8',
       ),
     );
@@ -334,6 +368,48 @@ test('migration runs in PostgreSQL and enforces public/staff/service permissions
       /permission denied/,
     );
     await db.exec("delete from items where title='Existing session item'");
+    await db.exec('reset role');
+    await db.exec(
+      readFileSync(
+        new URL(
+          '../supabase/migrations/011_remove_initiatives_and_archiving.sql',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select count(*)::int as count from items where item_type='INITIATIVE'",
+        )
+      ).rows[0].count,
+      0,
+    );
+    assert.equal(
+      (await db.query('select count(*)::int as count from retired_initiatives'))
+        .rows[0].count,
+      1,
+    );
+    assert.equal(
+      (
+        await db.query(
+          "select count(*)::int as count from information_schema.columns where table_schema='public' and table_name='items' and column_name='archived'",
+        )
+      ).rows[0].count,
+      0,
+    );
+    await assert.rejects(
+      db.exec(
+        "insert into items(item_type,title) values ('INITIATIVE','No longer supported')",
+      ),
+      /items_item_type_check|dates_match_type/,
+    );
+    await db.exec('set role anon');
+    await assert.rejects(
+      db.query('select * from retired_initiatives'),
+      /permission denied/,
+    );
     await db.exec('reset role');
   } finally {
     await db.close();

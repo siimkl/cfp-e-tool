@@ -305,9 +305,6 @@ input::placeholder {
   background: #e8edf4;
   color: #405d7b;
 }
-.archived-badge {
-  color: #8a7867;
-}
 .highlighted-badge {
   color: #785b00;
   font-weight: 650;
@@ -1160,10 +1157,6 @@ footer > * {
   }
 }
 
-.type-badge.initiative {
-  background: #eee8f4;
-  color: #644a7a;
-}
 .tab-count {
   font-variant-numeric: tabular-nums;
   opacity: 0.75;

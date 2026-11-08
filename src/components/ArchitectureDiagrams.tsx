@@ -268,14 +268,14 @@ export function ArchitectureDiagrams() {
           title="items · kuulutused"
           lines={[
             'PK id',
-            'item_type · CFP / EVENT / INITIATIVE',
+            'item_type · CFP / EVENT',
             'title, journal, organiser, summary',
             'category · üks kuuest kategooriast',
             'topics[] · täpsemad teemasildid',
             'deadline / event_start / event_end',
             'event_time, event_mode, location, URL',
             'dedupe_key · unikaalne kordusevõti',
-            'source_type, archived, highlighted',
+            'source_type, highlighted',
             'ajatemplid, created_by (pärandväli)',
           ]}
         />

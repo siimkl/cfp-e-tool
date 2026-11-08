@@ -23,7 +23,6 @@ function item(id: string, changes = {}) {
     homepage_url: 'https://example.org/cfp',
     topics: ['digitaalne ühiskond'],
     source_type: 'EMAIL',
-    archived: false,
     highlighted: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
@@ -45,7 +44,6 @@ async function api(page: Page) {
       topics: ['uurimismeetodid'],
     }),
     item('3', { title: 'Expired CFP', deadline: day(-3) }),
-    item('4', { title: 'Archived CFP', archived: true }),
   ];
   const requests: { url: string; method: string; data: any }[] = [];
   await page.route('https://cfp-test.supabase.co/**', async (route) => {
@@ -302,7 +300,7 @@ test('open workspace exposes creation controls and the source guide', async ({
   await expect(page).toHaveURL(/#\/allikad$/);
 });
 
-test('any visitor can add CFP and event, edit, archive, highlight, restore and delete', async ({
+test('any visitor can add CFP and event, edit, highlight and delete', async ({
   page,
 }) => {
   const requests = await api(page);
@@ -344,11 +342,6 @@ test('any visitor can add CFP and event, edit, archive, highlight, restore and d
   await page.getByLabel('Asukoht', { exact: true }).fill('Tartu');
   await page.getByRole('button', { name: 'Salvesta kuulutus' }).click();
   await expect(card.getByText('Tartu', { exact: true })).toBeVisible();
-  await card.getByRole('button', { name: 'Arhiveeri', exact: true }).click();
-  await expect(card).toHaveCount(0);
-  await page.getByRole('button', { name: /^Arhiveeritud \(/ }).click();
-  await card.getByRole('button', { name: 'Taasta', exact: true }).click();
-  await page.getByRole('button', { name: /^Kõik \(/ }).click();
   await card.getByRole('button', { name: 'Tõsta esile', exact: true }).click();
   await expect(card).toHaveClass(/item-highlighted/);
   await expect(card.locator('.highlighted-badge')).toContainText(
@@ -532,22 +525,10 @@ test('broad category filters announcements and architecture shows all three diag
   ).toBe(true);
 });
 
-test('initiative tab counts active items and shows undated research initiatives', async ({
+test('navigation only offers CFP and event views without archiving', async ({
   page,
 }) => {
-  await page.route('https://cfp-test.supabase.co/rest/v1/items*', (route) =>
-    route.fulfill({
-      json: [
-        item('initiative', {
-          item_type: 'INITIATIVE',
-          title: 'DigiLabour: new research lab website',
-          deadline: null,
-        }),
-        item('cfp'),
-        item('past', { deadline: day(-2) }),
-      ],
-    }),
-  );
+  await api(page);
   await page.goto('/');
   await expect(
     page.getByRole('button', { name: 'Kõik (2)', exact: true }),
@@ -558,13 +539,13 @@ test('initiative tab counts active items and shows undated research initiatives'
       exact: true,
     }),
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Algatused (1)', exact: true })
-    .click();
-  await expect(page.locator('tbody tr')).toHaveCount(1);
-  await expect(page.locator('tbody')).toContainText('DigiLabour');
-  await expect(page.locator('tbody')).toContainText('Kuupäevata algatus');
-  await expect(page.locator('.type-badge.initiative svg')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: /Algatused/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /Arhiveeritud/ })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole('button', { name: /Arhiveeri|Taasta/ }),
+  ).toHaveCount(0);
 });
 
 test('event time is displayed as supplied and missing date appears only once', async ({

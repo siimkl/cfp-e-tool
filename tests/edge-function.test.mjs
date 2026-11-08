@@ -16,6 +16,7 @@ test('quick-add extraction keeps the OpenAI key server-side and requests strict 
   assert.match(source, /type:\s*'json_schema'/);
   assert.match(source, /strict:\s*true/);
   assert.match(source, /additionalProperties:\s*false/);
+  assert.doesNotMatch(source, /'INITIATIVE'/);
 });
 
 test('quick-add extraction enforces input limits and isolates pasted instructions', () => {

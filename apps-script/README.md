@@ -67,7 +67,6 @@ Migration `003_source_statistics.sql` adds a private receipt ledger and a public
 
 Classification is conservative and independent of the model: direct sources require List-ID or List-Unsubscribe headers, and no forward/reply headers, subject prefixes or quoted/forwarded-body markers. Unknown mail is excluded, not guessed to be direct. Source identity uses List-ID when present, otherwise the actual sender. Forward detection is heuristic: stripped forwarding markers cannot always be recognised, and some genuine newsletters with quoted correspondence may be excluded. Counts demonstrate observed receipt, not current subscription membership. Public results contain source names/domains, counts and first/last dates only; message IDs and source keys remain private. No body or subject is stored in this ledger.
 
-
 ### Kuulutuse keel ja põhikategooria
 
 Importija säilitab iga algkuulutuse keele, sealhulgas eestikeelse pealkirja ja kokkuvõtte. Edasisaatja ingliskeelne saatetekst ei muuda algkuulutuse keelt. Keelemudeli väljund võib siiski eksida.
@@ -76,18 +75,11 @@ Igal kuulutusel on üks kohustuslik eestikeelne põhikategooria: ühiskond ja so
 
 Enne uuendatud importija ja veebilehe avaldamist rakenda migratsioon `005_item_categories.sql`. Senised kirjed liigitatakse olemasolevate teemasiltide põhjal: enim kattuvaid silte määrab põhikategooria, viigi korral kasutatakse migratsioonis loetletud järjekorda. Vaste puudumisel kasutatakse valdkondadeülest teadust. Juba töödeldud kirju uuesti mudelile ei saadeta.
 
-
-### Algatused
-
-`INITIATIVE` tähistab konkreetset teadusalgatust, näiteks labori, uurimisvõrgustiku, projekti või teadusressursi tutvustust. Algatusel puuduvad sündmuse kuupäevad ja CFP tähtaeg. Automaatne tuvastamine, kategooriad, korduste ühendamine ja halduri muudatused toimivad ka algatuste puhul. Enne koodi avaldamist rakenda `006_initiatives.sql`; see lisab kasutaja esitatud DigiLabouri teate esimese käsitsi lisatud algatusena. Varasemaid töödeldud kirju uuesti ei analüüsita.
-
-
 ### Aastaarvuta kuupäevad ja kellaajad
 
 Päeva ja kuu sisaldava kuupäeva puhul võib süsteem kasutada algkirja kuupäeva (selle puudumisel saabumisaega), kui 30 päeva varasemast kuni 180 päeva hilisemani jääb täpselt üks sobiv kuupäev ja kirjas nimetatud nädalapäev klapib. Ajaloolise või uuesti edastatud teate puhul ei tohi saabumisaeg algse teate aastat asendada. Ingliskeelsete nädalapäeva, päeva ja kuuga fraasidele lisatakse kalendri järgi kontrollitud abivihjed; seose konkreetse kuulutusega peab mudel kontrollima. Vastuoluline või puuduv kuupäev jääb tühjaks.
 
 `event_time` säilitab algallika kellaaja ja ajavööndi tekstina (näiteks `14:00 CET`), ilma vaikse ajavöönditeisenduseta. Veebisündmuse asukohaks võib olla kirjas või osalemislingis tuvastatav platvorm. Enne uuenduse avaldamist rakenda `007_event_time.sql`.
-
 
 ### Supabase HTTP 400 ja veebilingid
 

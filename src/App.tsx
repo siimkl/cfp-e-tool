@@ -22,13 +22,11 @@ import { Modal } from './components/Modal';
 import { InfoPage, type InfoPageKind } from './components/InfoPage';
 import { errorText } from './lib/messages';
 
-type Tab = 'All' | 'CFPs' | 'Events' | 'Initiatives' | 'Archived';
+type Tab = 'All' | 'CFPs' | 'Events';
 const tabLabels: Record<Tab, string> = {
   All: 'Kõik',
   CFPs: 'Call for Papers (CFP)',
   Events: 'Sündmused',
-  Initiatives: 'Algatused',
-  Archived: 'Arhiveeritud',
 };
 type Dialog =
   | { kind: 'capture' }
@@ -127,29 +125,20 @@ export default function App() {
     void load();
   }, [load]);
   const current = useMemo(
-    () => items.filter((item) => !item.archived && !isPast(item, today)),
+    () => items.filter((item) => !isPast(item, today)),
     [items, today],
   );
   const visible = useMemo(
     () =>
       items
         .filter((item) => {
-          if (tab === 'Archived') {
-            if (!item.archived) return false;
-          } else {
-            if (
-              item.archived ||
-              (period !== 'all' &&
-                (period === 'past'
-                  ? !isPast(item, today)
-                  : isPast(item, today)))
-            )
-              return false;
-          }
+          if (
+            period !== 'all' &&
+            (period === 'past' ? !isPast(item, today) : isPast(item, today))
+          )
+            return false;
           if (tab === 'CFPs' && item.item_type !== 'CFP') return false;
           if (tab === 'Events' && item.item_type !== 'EVENT') return false;
-          if (tab === 'Initiatives' && item.item_type !== 'INITIATIVE')
-            return false;
           if (category && item.category !== category) return false;
           if (highlightedOnly && !item.highlighted) return false;
           if (!matchesAddedPeriod(item.created_at, addedPeriod, today))
@@ -229,10 +218,7 @@ export default function App() {
     if (!item) throw new Error('Keelemudel ei tagastanud kuulutuse andmeid.');
     setDialog({ kind: 'edit', initial: item });
   }
-  async function mutate(
-    item: Item,
-    action: 'archive' | 'delete' | 'highlight',
-  ) {
+  async function mutate(item: Item, action: 'delete' | 'highlight') {
     if (!supabase) return;
     setBusy(true);
     setError('');
@@ -244,19 +230,12 @@ export default function App() {
             .eq('id', item.id)
             .select('id')
             .single()
-        : action === 'highlight'
-          ? await supabase
-              .from('items')
-              .update({ highlighted: !item.highlighted })
-              .eq('id', item.id)
-              .select('id')
-              .single()
-          : await supabase
-              .from('items')
-              .update({ archived: !item.archived })
-              .eq('id', item.id)
-              .select('id')
-              .single();
+        : await supabase
+            .from('items')
+            .update({ highlighted: !item.highlighted })
+            .eq('id', item.id)
+            .select('id')
+            .single();
     setBusy(false);
     if (error) {
       setError(errorText(error, 'Toiming ebaõnnestus. Proovi uuesti.'));
@@ -266,13 +245,9 @@ export default function App() {
     setNotice(
       action === 'delete'
         ? 'Kuulutus kustutatud.'
-        : action === 'highlight'
-          ? item.highlighted
-            ? 'Esiletõst eemaldatud.'
-            : 'Kuulutus esiletõstetud.'
-          : item.archived
-            ? 'Kuulutus taastatud.'
-            : 'Kuulutus arhiveeritud.',
+        : item.highlighted
+          ? 'Esiletõst eemaldatud.'
+          : 'Kuulutus esiletõstetud.',
     );
     await load();
   }
@@ -315,9 +290,7 @@ export default function App() {
           <>
             <section className="directory" aria-label="Kuulutused">
               <div className="filter-tabs" aria-label="Filtreeri kuulutusi">
-                {(
-                  ['All', 'CFPs', 'Events', 'Initiatives', 'Archived'] as Tab[]
-                ).map((value) => (
+                {(['All', 'CFPs', 'Events'] as Tab[]).map((value) => (
                   <button
                     key={value}
                     aria-pressed={tab === value}
@@ -328,21 +301,18 @@ export default function App() {
                       (
                       {!configurationReady || loading
                         ? '—'
-                        : value === 'Archived'
-                          ? items.filter((i) => i.archived).length
-                          : value === 'All'
-                            ? current.length
-                            : current.filter(
-                                (i) =>
-                                  i.item_type ===
-                                  (
-                                    {
-                                      CFPs: 'CFP',
-                                      Events: 'EVENT',
-                                      Initiatives: 'INITIATIVE',
-                                    } as Record<string, string>
-                                  )[value],
-                              ).length}
+                        : value === 'All'
+                          ? current.length
+                          : current.filter(
+                              (i) =>
+                                i.item_type ===
+                                (
+                                  {
+                                    CFPs: 'CFP',
+                                    Events: 'EVENT',
+                                  } as Record<string, string>
+                                )[value],
+                            ).length}
                       )
                     </span>
                   </button>
@@ -512,9 +482,6 @@ export default function App() {
                                 item={item}
                                 today={today}
                                 onEdit={() => setDialog({ kind: 'edit', item })}
-                                onArchive={() => {
-                                  if (!busy) void mutate(item, 'archive');
-                                }}
                                 onHighlight={
                                   highlightSupported
                                     ? () => {
@@ -608,7 +575,7 @@ export default function App() {
         <Modal title="Kas kustutada kuulutus?" onClose={() => setDialog(null)}>
           <p>
             Kuulutus „{dialog.item.title}” ja selle allikaviited kustutatakse
-            jäädavalt. Kuulutuse säilitamiseks kasuta arhiveerimist.
+            jäädavalt.
           </p>
           <div className="form-actions">
             <button onClick={() => setDialog(null)}>Loobu</button>

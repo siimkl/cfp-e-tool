@@ -102,10 +102,7 @@ const nodes: Node[] = [
     id: 'model',
     x: 380,
     y: 1015,
-    lines: [
-      'Lase keelemudelil kiri läbi vaadata',
-      'Leia CFP-d, sündmused ja algatused',
-    ],
+    lines: ['Lase keelemudelil kiri läbi vaadata', 'Leia CFP-d ja sündmused'],
   },
   {
     id: 'valid',

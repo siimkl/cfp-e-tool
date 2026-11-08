@@ -151,7 +151,6 @@ function harness() {
           else {
             existing = {
               id: table + '-' + (rows.length + 1),
-              archived: false,
               ...body,
             };
             rows.push(existing);
@@ -622,7 +621,7 @@ test('Estonian extraction stays Estonian through storage, with a required broad 
   assert.equal(db.items.length, 1);
 });
 
-test('research initiative is extracted and repeated announcements are merged', () => {
+test('research initiatives are excluded from extraction and rejected by validation', () => {
   const { context: c, state, db } = harness();
   const initiative = {
     ...sample,
@@ -631,48 +630,89 @@ test('research initiative is extracted and repeated announcements are merged', (
     deadline: null,
     homepage_url: 'https://example.org/call',
   };
-  state.extractions.push([initiative], [initiative]);
-  assert.equal(c.processMessage(message('initiative1')), 'SUCCESS');
-  assert.equal(c.processMessage(message('initiative2')), 'SUCCESS');
-  assert.equal(db.items.length, 1);
-  assert.equal(db.items[0].item_type, 'INITIATIVE');
-  assert.equal(db.items[0].deadline, null);
-  assert.equal(db.item_sources.length, 2);
-  state.extractions.push([{ ...initiative, event_start: '2027-01-01' }]);
-  assert.equal(c.processMessage(message('initiative-invalid')), 'ERROR');
+  state.extractions.push([initiative]);
+  assert.equal(c.processMessage(message('initiative')), 'ERROR');
+  assert.equal(db.items.length, 0);
+  const request = JSON.parse(
+    state.calls.find((call) => call.url.includes('openai')).options.payload,
+  );
+  assert.deepEqual(
+    request.text.format.schema.properties.items.items.properties.item_type.enum,
+    ['CFP', 'EVENT'],
+  );
+  assert.match(request.input[0].content, /Do not extract research labs/);
 });
-
 
 test('yearless calendar hints reach the model and event time and platform survive storage', () => {
- const { context: c, state, db } = harness();
- state.extractions.push([{ ...sample, item_type: 'EVENT', deadline: null, event_start: '2026-10-16', event_end: null, event_time: '14:00 CET', event_mode: 'ONLINE', location: 'Microsoft Teams', source_excerpt: null }]);
- const mail = { ...message('dreamy'), getDate: () => new Date('2026-10-13T20:36:02Z'), getPlainBody: () => 'Dreamy Stacks. Friday 16th October 2pm CET. Online via Microsoft Teams.' };
- assert.equal(c.processMessage(mail), 'SUCCESS');
- const request = JSON.parse(state.calls.find(call => call.url.includes('openai')).options.payload);
- assert.match(JSON.stringify(request.input), /2026-10-16/);
- assert.match(JSON.stringify(request.input), /Do not use receipt-based hints for historical/);
- assert.equal(db.items[0].event_time, '14:00 CET');
- assert.equal(db.items[0].location, 'Microsoft Teams');
+  const { context: c, state, db } = harness();
+  state.extractions.push([
+    {
+      ...sample,
+      item_type: 'EVENT',
+      deadline: null,
+      event_start: '2026-10-16',
+      event_end: null,
+      event_time: '14:00 CET',
+      event_mode: 'ONLINE',
+      location: 'Microsoft Teams',
+      source_excerpt: null,
+    },
+  ]);
+  const mail = {
+    ...message('dreamy'),
+    getDate: () => new Date('2026-10-13T20:36:02Z'),
+    getPlainBody: () =>
+      'Dreamy Stacks. Friday 16th October 2pm CET. Online via Microsoft Teams.',
+  };
+  assert.equal(c.processMessage(mail), 'SUCCESS');
+  const request = JSON.parse(
+    state.calls.find((call) => call.url.includes('openai')).options.payload,
+  );
+  assert.match(JSON.stringify(request.input), /2026-10-16/);
+  assert.match(
+    JSON.stringify(request.input),
+    /Do not use receipt-based hints for historical/,
+  );
+  assert.equal(db.items[0].event_time, '14:00 CET');
+  assert.equal(db.items[0].location, 'Microsoft Teams');
 });
 
-
 test('Supabase errors expose safe diagnostic codes without echoed input or credentials', () => {
- const { context: c } = harness();
- c.UrlFetchApp.fetch = () => ({ getResponseCode: () => 400, getContentText: () => JSON.stringify({ code: '23514', message: 'new row violates check constraint "items_homepage_url_check"', details: 'secret key, email body and confidential content', hint: 'private value' }) });
- assert.throws(() => c.rest('items?secret=do-not-log', 'post', {}), e => {
-   assert.match(e.message, /Supabase HTTP 400/);
-   assert.match(e.message, /POST items; code 23514; constraint items_homepage_url_check/);
-   assert.doesNotMatch(e.message, /secret|confidential|private|do-not-log/);
-   assert.equal(e.httpStatus, 400);
-   return true;
- });
+  const { context: c } = harness();
+  c.UrlFetchApp.fetch = () => ({
+    getResponseCode: () => 400,
+    getContentText: () =>
+      JSON.stringify({
+        code: '23514',
+        message: 'new row violates check constraint "items_homepage_url_check"',
+        details: 'secret key, email body and confidential content',
+        hint: 'private value',
+      }),
+  });
+  assert.throws(
+    () => c.rest('items?secret=do-not-log', 'post', {}),
+    (e) => {
+      assert.match(e.message, /Supabase HTTP 400/);
+      assert.match(
+        e.message,
+        /POST items; code 23514; constraint items_homepage_url_check/,
+      );
+      assert.doesNotMatch(e.message, /secret|confidential|private|do-not-log/);
+      assert.equal(e.httpStatus, 400);
+      return true;
+    },
+  );
 });
 
 test('Teams event links with @ in the path survive extraction and storage', () => {
- const { context: c, state, db } = harness();
- const url = 'https://events.teams.microsoft.com/event/event-id@tenant-id';
- state.extractions.push([{ ...sample, homepage_url: url }]);
- const mail = { ...message('teams-at'), getPlainBody: () => 'Digital Society call for papers. '+url, getBody: () => '<a href="'+url+'">Attend</a>' };
- assert.equal(c.processMessage(mail), 'SUCCESS');
- assert.equal(db.items[0].homepage_url, url);
+  const { context: c, state, db } = harness();
+  const url = 'https://events.teams.microsoft.com/event/event-id@tenant-id';
+  state.extractions.push([{ ...sample, homepage_url: url }]);
+  const mail = {
+    ...message('teams-at'),
+    getPlainBody: () => 'Digital Society call for papers. ' + url,
+    getBody: () => '<a href="' + url + '">Attend</a>',
+  };
+  assert.equal(c.processMessage(mail), 'SUCCESS');
+  assert.equal(db.items[0].homepage_url, url);
 });
